@@ -189,11 +189,11 @@ export class WorldGenerator {
         const groundY = surfaceHeights[x];
         if (getTile(x, groundY) === TILES.GRASS && getTile(x, groundY - 1) === TILES.AIR) {
           const treeH = Math.floor(rng.range(5, 11));
-          // Trunk
+          // Tree Trunk in background layer (player and enemies can walk through!)
           for (let th = 1; th <= treeH; th++) {
-            setTile(x, groundY - th, TILES.WOOD);
+            setTile(x, groundY - th, TILES.TREE_TRUNK);
           }
-          // Foliage crown
+          // Foliage crown (leaves in background layer - passable!)
           const crownY = groundY - treeH;
           for (let fx = -2; fx <= 2; fx++) {
             for (let fy = -2; fy <= 0; fy++) {
@@ -207,7 +207,7 @@ export class WorldGenerator {
       }
     }
 
-    // 6. Generate Starter Cabin / Surface Shelter
+    // 6. Generate Starter Cabin / Surface Shelter (Solid Wood Planks!)
     const cabinX = Math.floor(width / 2) - 10;
     const cabinGroundY = surfaceHeights[cabinX + 4];
     const cabinW = 12;
@@ -221,9 +221,9 @@ export class WorldGenerator {
         setTile(tx, ty, TILES.AIR);
         setWall(tx, ty, TILES.WOOD_WALL);
 
-        // Floor, ceiling, walls
+        // Floor, ceiling, walls (Solid Wood Planks!)
         if (cy === 0 || cy === cabinH - 1 || cx === 0 || cx === cabinW - 1) {
-          setTile(tx, ty, TILES.WOOD);
+          setTile(tx, ty, TILES.WOOD_PLANK);
         }
       }
     }

@@ -130,11 +130,31 @@ export class TileRenderer {
       ctx.fillRect(dx + 6, dy + 1, 4, 3);
     }
 
-    // Wood rings / grain
-    if (tileId === TILES.WOOD) {
+    // Tree Trunk texture (oak bark)
+    if (tileId === TILES.TREE_TRUNK) {
+      ctx.fillStyle = '#78431e';
+      ctx.fillRect(dx + 2, dy, TILE_SIZE - 4, TILE_SIZE);
       ctx.fillStyle = '#5c3314';
+      ctx.fillRect(dx + 4, dy, 2, TILE_SIZE);
+      ctx.fillRect(dx + 9, dy, 2, TILE_SIZE);
+      ctx.fillStyle = '#8f532b';
       ctx.fillRect(dx + 2, dy, 2, TILE_SIZE);
-      ctx.fillRect(dx + 11, dy, 2, TILE_SIZE);
+      return;
+    }
+
+    // Wood rings / grain for solid building blocks
+    if (tileId === TILES.WOOD_PLANK || tileId === TILES.WOOD) {
+      ctx.fillStyle = '#9e5a2c';
+      ctx.fillRect(dx, dy, TILE_SIZE, TILE_SIZE);
+      ctx.fillStyle = '#5c3314';
+      ctx.fillRect(dx, dy + 5, TILE_SIZE, 1.5);
+      ctx.fillRect(dx, dy + 11, TILE_SIZE, 1.5);
+      ctx.fillStyle = '#b57342';
+      ctx.fillRect(dx, dy, TILE_SIZE, 1);
+      ctx.strokeStyle = '#3e1d09';
+      ctx.lineWidth = 0.8;
+      ctx.strokeRect(dx, dy, TILE_SIZE, TILE_SIZE);
+      return;
     }
 
     // Stone cracks / specks

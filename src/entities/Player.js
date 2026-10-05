@@ -44,6 +44,8 @@ export class Player {
     this.invulnerableTimer = 0;
     this.potionCooldown = 0;
     this.manaRegenTimer = 0;
+    this.timeSinceLastHurt = 10; // Start ready to heal
+    this.healthRegenAccumulator = 0;
 
     // Movement & Double Jump
     this.canDoubleJump = false;
@@ -155,6 +157,20 @@ export class Player {
     // Check accessories
     this.hasCloudBottle = this.hasItem('cloud_in_a_bottle');
     this.hasHermesBoots = this.hasItem('hermes_boots');
+
+    // Natural Health Regeneration (Terraria style out-of-combat heal)
+    this.timeSinceLastHurt += dt;
+    if (this.timeSinceLastHurt > 3.5 && this.hp < this.maxHp) {
+      // Regenerates 1 HP every 1.2s, or every 0.8s if standing still
+      const regenInterval = Math.abs(this.vx) < 0.1 ? 0.8 : 1.2;
+      this.healthRegenAccumulator += dt;
+      if (this.healthRegenAccumulator >= regenInterval) {
+        this.healthRegenAccumulator = 0;
+        this.hp = Math.min(this.maxHp, this.hp + 1);
+      }
+    } else {
+      this.healthRegenAccumulator = 0;
+    }
 
     // Natural Mana Regeneration
     this.manaRegenTimer += dt;
@@ -347,6 +363,9 @@ export class Player {
     const itemDef = ITEMS[selected.item];
     if (!itemDef) return;
 
+    const world = this.game.world;
+    if (!world) return;
+
     const pCenterX = this.x + this.width / 2;
     const pCenterY = this.y + this.height / 2;
     const targetTx = Math.floor(worldX / TILE_SIZE);
@@ -503,6 +522,10 @@ export class Player {
 
   takeDamage(amount, knockback = 0) {
     if (this.invulnerableTimer > 0) return;
+
+    // Reset health regeneration timer
+    this.timeSinceLastHurt = 0;
+    this.healthRegenAccumulator = 0;
 
     // Defense reduction: Damage = Max(1, Amount - Defense / 2)
     let def = 0;

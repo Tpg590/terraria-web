@@ -3,6 +3,7 @@
 // ==========================================
 
 import { ITEMS } from '../core/Constants.js';
+import { ItemSprites } from '../core/ItemSprites.js';
 
 export class HUD {
   constructor(game) {
@@ -38,27 +39,18 @@ export class HUD {
       ctx.font = '10px "Courier New", monospace';
       ctx.fillText((i + 1) % 10, sx + 3, startY + 11);
 
-      // Draw item in slot
+      // Draw authentic pixel art item in slot
       const itemData = player.inventory[i];
       if (itemData) {
-        const itemDef = ITEMS[itemData.item];
-        if (itemDef) {
-          // Item block/symbol
-          ctx.fillStyle = itemDef.color || '#fff';
-          ctx.fillRect(sx + 8, startY + 8, 24, 24);
+        ItemSprites.draw(ctx, itemData.item, sx + 8, startY + 8, 24);
 
-          // Subtle item inner detail
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-          ctx.fillRect(sx + 10, startY + 10, 6, 6);
-
-          // Item stack count
-          if (itemData.count > 1) {
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 11px "Courier New", monospace';
-            ctx.textAlign = 'right';
-            ctx.fillText(itemData.count, sx + slotSize - 3, startY + slotSize - 3);
-            ctx.textAlign = 'left';
-          }
+        // Item stack count
+        if (itemData.count > 1) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 11px "Courier New", monospace';
+          ctx.textAlign = 'right';
+          ctx.fillText(itemData.count, sx + slotSize - 3, startY + slotSize - 3);
+          ctx.textAlign = 'left';
         }
       }
     }
@@ -79,9 +71,9 @@ export class HUD {
       }
     }
 
-    // 2. Health Hearts (Top-Right)
-    const heartsStartX = screenW - 240;
-    const heartsStartY = 18;
+    // 2. Health Hearts (Top-Right, completely clear of menu buttons)
+    const heartsStartX = Math.max(200, screenW - 170);
+    const heartsStartY = 16;
     const heartsCount = Math.ceil(player.maxHp / 20); // 5 hearts for 100 HP
 
     ctx.fillStyle = '#ffffff';
@@ -111,9 +103,9 @@ export class HUD {
       }
     }
 
-    // 3. Mana Stars (Right Side below Hearts)
-    const manaStartX = screenW - 28;
-    const manaStartY = 48;
+    // 3. Mana Stars (Far Right Edge)
+    const manaStartX = screenW - 24;
+    const manaStartY = 42;
     const starsCount = Math.ceil(player.maxMana / 10); // 5 stars for 50 Mana
 
     for (let s = 0; s < starsCount; s++) {

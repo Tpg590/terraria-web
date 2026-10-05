@@ -12,14 +12,14 @@ export const TILES = {
   DIRT: 1,
   GRASS: 2,
   STONE: 3,
-  WOOD: 4,
-  LEAVES: 5,
+  WOOD_PLANK: 4,     // Solid wood block crafted by player for building houses
+  LEAVES: 5,         // Tree leaves (background passable)
   COPPER_ORE: 6,
   IRON_ORE: 7,
   GOLD_ORE: 8,
-  TORCH: 9,
+  TORCH: 9,          // Torch (passable)
   WORKBENCH: 10,
-  WOOD_PLATFORM: 11,
+  WOOD_PLATFORM: 11, // Semi-solid platform (drop through)
   CHEST: 12,
   SAND: 13,
   GLASS: 14,
@@ -27,17 +27,21 @@ export const TILES = {
   FURNACE: 16,
   ANVIL: 17,
   CACTUS: 18,
-  DIRT_WALL: 19,
-  WOOD_WALL: 20,
-  STONE_WALL: 21,
+  DIRT_WALL: 19,     // Background wall (passable)
+  WOOD_WALL: 20,     // Background wall (passable)
+  STONE_WALL: 21,    // Background wall (passable)
   WATER: 22,
   LAVA: 23,
   DOOR_CLOSED: 24,
   DOOR_OPEN: 25,
   COAL_ORE: 26,
   GEM_RUBY: 27,
-  GEM_SAPPHIRE: 28
+  GEM_SAPPHIRE: 28,
+  TREE_TRUNK: 29     // Natural tree trunk (oak) in background layer (passable!)
 };
+
+// Aliases for compatibility
+TILES.WOOD = TILES.WOOD_PLANK;
 
 // Tile attributes (hardness, drops, solid, light emission, colors)
 export const TILE_PROPERTIES = {
@@ -50,7 +54,7 @@ export const TILE_PROPERTIES = {
   },
   [TILES.DIRT]: {
     name: 'Dirt',
-    solid: true,
+    solid: true,       // Solid foreground block (cannot pass through)
     hardness: 15,
     drop: 'dirt_block',
     lightPass: 0.2,
@@ -59,7 +63,7 @@ export const TILE_PROPERTIES = {
   },
   [TILES.GRASS]: {
     name: 'Grass',
-    solid: true,
+    solid: true,       // Solid foreground block (cannot pass through)
     hardness: 16,
     drop: 'dirt_block',
     lightPass: 0.2,
@@ -68,25 +72,35 @@ export const TILE_PROPERTIES = {
   },
   [TILES.STONE]: {
     name: 'Stone',
-    solid: true,
+    solid: true,       // Solid foreground block (cannot pass through)
     hardness: 30,
     drop: 'stone_block',
     lightPass: 0.1,
     color: '#828282',
     innerColor: '#686868'
   },
-  [TILES.WOOD]: {
-    name: 'Wood',
-    solid: true,
+  [TILES.WOOD_PLANK]: {
+    name: 'Wood Plank',
+    solid: true,       // Solid wood block for houses (CANNOT walk through!)
     hardness: 20,
     drop: 'wood',
     lightPass: 0.3,
     color: '#9e5a2c',
     innerColor: '#78431e'
   },
+  [TILES.TREE_TRUNK]: {
+    name: 'Tree Trunk',
+    solid: false,      // Background layer tree trunk (CAN walk through!)
+    isTree: true,
+    hardness: 18,
+    drop: 'wood',
+    lightPass: 0.6,
+    color: '#703e1c',
+    innerColor: '#532d13'
+  },
   [TILES.LEAVES]: {
     name: 'Leaves',
-    solid: false,
+    solid: false,      // Background layer leaves (CAN walk through!)
     hardness: 5,
     drop: 'acorn',
     lightPass: 0.7,

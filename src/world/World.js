@@ -86,45 +86,80 @@ export class World {
     }
   }
 
-  // Damage tile with pickaxe or axe
+  // Damage tile with pickaxe or axe (supports both foreground block layer and background wall layer)
   damageTile(tx, ty, toolPower, toolType) {
     const tile = this.getTile(tx, ty);
-    if (tile === TILES.AIR) return false;
+    const wall = this.getWall(tx, ty);
 
-    const prop = TILE_PROPERTIES[tile];
-    if (!prop || !prop.hardness) return false;
+    // If there is a foreground block or tree trunk/leaves
+    if (tile !== TILES.AIR) {
+      const prop = TILE_PROPERTIES[tile];
+      if (!prop || !prop.hardness) return false;
 
-    const key = `${tx},${ty}`;
-    let record = this.miningTiles.get(key);
-    if (!record) {
-      record = {
-        damage: 0,
-        maxDamage: prop.hardness,
-        lastHitTime: Date.now()
-      };
-      this.miningTiles.set(key, record);
+      const key = `${tx},${ty}`;
+      let record = this.miningTiles.get(key);
+      if (!record) {
+        record = {
+          damage: 0,
+          maxDamage: prop.hardness,
+          lastHitTime: Date.now()
+        };
+        this.miningTiles.set(key, record);
+      }
+
+      record.damage += toolPower;
+      record.lastHitTime = Date.now();
+
+      // Sound effect based on tile type
+      if (tile === TILES.DIRT || tile === TILES.GRASS) {
+        soundEngine.playDigDirt();
+      } else if (tile === TILES.WOOD_PLANK || tile === TILES.TREE_TRUNK || tile === TILES.LEAVES) {
+        soundEngine.playChopWood();
+      } else {
+        soundEngine.playDigStone();
+      }
+
+      // Spawn block debris particles
+      this.game.spawnDebris(tx * TILE_SIZE + 8, ty * TILE_SIZE + 8, prop.color || '#888');
+
+      // Broke block completely!
+      if (record.damage >= record.maxDamage) {
+        this.breakTile(tx, ty);
+        return true;
+      }
+      return false;
     }
+    // If no foreground block, damage and break background wall!
+    else if (wall !== TILES.AIR) {
+      const prop = TILE_PROPERTIES[wall];
+      if (!prop) return false;
 
-    record.damage += toolPower;
-    record.lastHitTime = Date.now();
+      const key = `w_${tx},${ty}`;
+      let record = this.miningTiles.get(key);
+      if (!record) {
+        record = {
+          damage: 0,
+          maxDamage: prop.hardness || 15,
+          lastHitTime: Date.now()
+        };
+        this.miningTiles.set(key, record);
+      }
 
-    // Sound effect based on tile type
-    if (tile === TILES.DIRT || tile === TILES.GRASS) {
-      soundEngine.playDigDirt();
-    } else if (tile === TILES.WOOD || tile === TILES.LEAVES) {
+      record.damage += toolPower;
+      record.lastHitTime = Date.now();
       soundEngine.playChopWood();
-    } else {
-      soundEngine.playDigStone();
+
+      if (record.damage >= record.maxDamage) {
+        if (prop.drop) {
+          this.game.spawnItemDrop(tx * TILE_SIZE + 4, ty * TILE_SIZE + 4, prop.drop, 1);
+        }
+        this.setWall(tx, ty, TILES.AIR, true);
+        this.miningTiles.delete(key);
+        return true;
+      }
+      return false;
     }
 
-    // Spawn block debris particles
-    this.game.spawnDebris(tx * TILE_SIZE + 8, ty * TILE_SIZE + 8, prop.color || '#888');
-
-    // Broke block completely!
-    if (record.damage >= record.maxDamage) {
-      this.breakTile(tx, ty);
-      return true;
-    }
     return false;
   }
 
@@ -137,10 +172,11 @@ export class World {
 
     this.setTile(tx, ty, TILES.AIR, true);
 
-    // If broke tree trunk, check if leaves or trunk above fall
-    if (tile === TILES.WOOD) {
+    // If broke tree trunk, cascade chop trees above!
+    if (tile === TILES.TREE_TRUNK || tile === TILES.LEAVES) {
       setTimeout(() => {
-        if (this.getTile(tx, ty - 1) === TILES.WOOD || this.getTile(tx, ty - 1) === TILES.LEAVES) {
+        const above = this.getTile(tx, ty - 1);
+        if (above === TILES.TREE_TRUNK || above === TILES.LEAVES) {
           this.breakTile(tx, ty - 1);
         }
       }, 35);

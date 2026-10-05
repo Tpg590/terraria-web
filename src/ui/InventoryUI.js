@@ -3,6 +3,7 @@
 // ==========================================
 
 import { ITEMS, RECIPES, TILES } from '../core/Constants.js';
+import { ItemSprites } from '../core/ItemSprites.js';
 import { soundEngine } from '../core/SoundEngine.js';
 
 export class InventoryUI {
@@ -119,9 +120,10 @@ export class InventoryUI {
         if (def) {
           slot.title = `${def.name} (Count: ${itemData.count})\n${def.type.toUpperCase()}${def.damage ? ` | Damage: ${def.damage}` : ''}${def.power ? ` | Power: ${def.power}%` : ''}`;
           
-          const icon = document.createElement('div');
-          icon.className = 'item-icon';
-          icon.style.backgroundColor = def.color || '#fff';
+          const icon = document.createElement('img');
+          icon.className = 'item-icon pixelated';
+          icon.src = ItemSprites.getDataUrl(itemData.item);
+          icon.alt = def.name;
           slot.appendChild(icon);
 
           if (itemData.count > 1) {
@@ -240,7 +242,7 @@ export class InventoryUI {
       itemEl.className = `craft-item ${canCraft ? 'craftable' : 'not-craftable'}`;
 
       itemEl.innerHTML = `
-        <div class="craft-icon" style="background-color: ${resultDef.color || '#fff'}"></div>
+        <img class="craft-icon pixelated" src="${ItemSprites.getDataUrl(recipe.result)}" alt="${resultDef.name}" />
         <div class="craft-details">
           <div class="craft-name">${resultDef.name} ${recipe.count > 1 ? `x${recipe.count}` : ''}</div>
           <div class="craft-reqs">${reqStrings.join(', ')}</div>

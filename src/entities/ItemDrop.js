@@ -4,6 +4,7 @@
 // ==========================================
 
 import { TILE_SIZE, ITEMS, TILE_PROPERTIES } from '../core/Constants.js';
+import { ItemSprites } from '../core/ItemSprites.js';
 import { soundEngine } from '../core/SoundEngine.js';
 
 export class ItemDrop {
@@ -77,17 +78,7 @@ export class ItemDrop {
     const bob = this.grounded ? Math.sin(this.age * 5) * 2 : 0;
     const py = this.y - camera.y + bob;
 
-    const itemDef = ITEMS[this.itemId] || { color: '#ffd700', name: this.itemId };
-
-    // Draw little floating item square or icon
-    ctx.fillStyle = itemDef.color || '#e0e0e0';
-    ctx.fillRect(px, py, 12, 12);
-    ctx.strokeStyle = '#222';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(px, py, 12, 12);
-
-    // Subtle glow around dropped item
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.fillRect(px + 2, py + 2, 4, 4);
+    // Draw realistic mini pixel-art item drop
+    ItemSprites.draw(ctx, this.itemId, px - 2, py - 2, 16);
   }
 }

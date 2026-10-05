@@ -91,7 +91,7 @@ export class Enemy {
     } else if (this.type === 'zombie') {
       this.updateZombieAI(dt, world, player, dx);
     } else if (this.type === 'demon_eye') {
-      this.updateDemonEyeAI(dt, dx, dy, dist);
+      this.updateDemonEyeAI(dt, world, dx, dy, dist);
     } else if (this.type === 'eye_of_cthulhu') {
       this.updateBossAI(dt, dx, dy, dist, game);
     }
@@ -148,17 +148,58 @@ export class Enemy {
     this.moveAndCollide(world);
   }
 
-  updateDemonEyeAI(dt, dx, dy, dist) {
-    // Flying swooping motion
+  updateDemonEyeAI(dt, world, dx, dy, dist) {
+    // Flying swooping motion towards player
     this.flightTimer += dt;
-    const targetVx = (dx / dist) * 3.5;
-    const targetVy = (dy / dist) * 2.5;
+    const targetVx = (dx / dist) * 3.2;
+    const targetVy = (dy / dist) * 2.2;
 
     this.vx += (targetVx - this.vx) * 0.05;
     this.vy += (targetVy - this.vy) * 0.05;
 
+    // Horizontal Movement & Solid Block Collision
     this.x += this.vx;
+    const startTx = Math.floor(this.x / TILE_SIZE);
+    const endTx = Math.floor((this.x + this.width) / TILE_SIZE);
+    const startTy = Math.floor(this.y / TILE_SIZE);
+    const endTy = Math.floor((this.y + this.height - 1) / TILE_SIZE);
+
+    for (let ty = startTy; ty <= endTy; ty++) {
+      for (let tx = startTx; tx <= endTx; tx++) {
+        const prop = TILE_PROPERTIES[world.getTile(tx, ty)];
+        if (prop && prop.solid && !prop.platform) {
+          if (this.vx > 0) {
+            this.x = tx * TILE_SIZE - this.width;
+            this.vx = -this.vx * 0.6;
+          } else if (this.vx < 0) {
+            this.x = (tx + 1) * TILE_SIZE;
+            this.vx = -this.vx * 0.6;
+          }
+        }
+      }
+    }
+
+    // Vertical Movement & Solid Block Collision
     this.y += this.vy;
+    const vStartTx = Math.floor(this.x / TILE_SIZE);
+    const vEndTx = Math.floor((this.x + this.width - 1) / TILE_SIZE);
+    const vStartTy = Math.floor(this.y / TILE_SIZE);
+    const vEndTy = Math.floor((this.y + this.height) / TILE_SIZE);
+
+    for (let ty = vStartTy; ty <= vEndTy; ty++) {
+      for (let tx = vStartTx; tx <= vEndTx; tx++) {
+        const prop = TILE_PROPERTIES[world.getTile(tx, ty)];
+        if (prop && prop.solid && !prop.platform) {
+          if (this.vy > 0) {
+            this.y = ty * TILE_SIZE - this.height;
+            this.vy = -this.vy * 0.6;
+          } else if (this.vy < 0) {
+            this.y = (ty + 1) * TILE_SIZE;
+            this.vy = -this.vy * 0.6;
+          }
+        }
+      }
+    }
   }
 
   updateBossAI(dt, dx, dy, dist, game) {
