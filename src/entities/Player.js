@@ -18,6 +18,7 @@ import {
 import { Projectile } from './Projectile.js';
 import { DamageText } from './Particle.js';
 import { soundEngine } from '../core/SoundEngine.js';
+import { ItemSprites } from '../core/ItemSprites.js';
 
 export class Player {
   constructor(game, x = 100, y = 100) {
@@ -78,12 +79,28 @@ export class Player {
   }
 
   initStarterInventory() {
-    // Terraria starter loadout
+    // Terraria starter loadout: sword, pickaxe, axe, hammer, torches, wood
     this.inventory[0] = { item: 'copper_broadsword', count: 1 };
     this.inventory[1] = { item: 'copper_pickaxe', count: 1 };
     this.inventory[2] = { item: 'copper_axe', count: 1 };
-    this.inventory[3] = { item: 'torch', count: 25 };
-    this.inventory[4] = { item: 'wood', count: 50 };
+    this.inventory[3] = { item: 'wooden_hammer', count: 1 };
+    this.inventory[4] = { item: 'torch', count: 25 };
+    this.inventory[5] = { item: 'wood', count: 50 };
+  }
+
+  canPickup(itemId) {
+    const itemDef = ITEMS[itemId];
+    if (!itemDef) return false;
+    const maxStack = itemDef.maxStack || 1;
+    if (maxStack > 1) {
+      for (const slot of this.inventory) {
+        if (slot && slot.item === itemId && slot.count < maxStack) return true;
+      }
+    }
+    for (const slot of this.inventory) {
+      if (!slot) return true;
+    }
+    return false;
   }
 
   getSelectedItem() {
@@ -378,13 +395,30 @@ export class Player {
     // Face aiming direction
     this.facing = worldX >= pCenterX ? 1 : -1;
 
-    // 1. Tool (Mining / Chopping)
+    // 1. Tool (Mining / Chopping / Hammering & Dealing Damage)
     if (itemDef.type === 'tool') {
+      this.isSwinging = true;
+      this.swingProgress = 0;
+      this.useCooldown = (itemDef.useTime || 15) / 60;
+      soundEngine.playSwing();
+
       if (distTiles <= maxReach) {
-        this.isSwinging = true;
-        this.swingProgress = 0;
-        this.useCooldown = (itemDef.useTime || 15) / 60;
         world.damageTile(targetTx, targetTy, itemDef.power, itemDef.toolType);
+      }
+
+      // Pickaxe, axe, and hammer deal damage to monsters when swung!
+      const swingRange = (itemDef.range || 4.5) * 16;
+      for (const enemy of this.game.enemies) {
+        if (!enemy.dead) {
+          const edx = (enemy.x + enemy.width / 2) - pCenterX;
+          const edy = (enemy.y + enemy.height / 2) - pCenterY;
+          const eDist = Math.hypot(edx, edy);
+
+          // In front of player within reach
+          if (eDist <= swingRange && Math.sign(edx) === this.facing) {
+            enemy.takeDamage(itemDef.damage || 4, itemDef.knockback || 3.5, this.facing, this.game);
+          }
+        }
       }
     }
     // 2. Weapon (Sword)
@@ -614,32 +648,67 @@ export class Player {
       const itemDef = ITEMS[selected.item];
       if (itemDef) {
         ctx.save();
-        const handX = this.facing > 0 ? px + 14 : px + 6;
+        const handX = this.facing > 0 ? px + 12 : px + 8;
         const handY = py + 16;
         ctx.translate(handX, handY);
 
         if (this.isSwinging) {
           // Swing rotation
           const swingAngle = this.facing > 0
-            ? -Math.PI * 0.4 + this.swingProgress * Math.PI * 0.9
-            : Math.PI * 0.4 - this.swingProgress * Math.PI * 0.9;
+            ? -Math.PI * 0.45 + this.swingProgress * Math.PI * 0.95
+            : Math.PI * 0.45 - this.swingProgress * Math.PI * 0.95;
           ctx.rotate(swingAngle);
+
+          // Arm sleeve & hand
+          ctx.fillStyle = '#1e88e5'; // Blue sleeve
+          ctx.fillRect(0, -2, this.facing * 8, 4);
+          ctx.fillStyle = '#ffcc80'; // Skin hand
+          ctx.fillRect(this.facing > 0 ? 6 : -9, -2, 3, 4);
+
+          // Render authentic held item sprite swinging
+          ctx.save();
+          if (this.facing > 0) {
+            ItemSprites.draw(ctx, selected.item, 4, -14, 18);
+          } else {
+            ctx.scale(-1, 1);
+            ItemSprites.draw(ctx, selected.item, 4, -14, 18);
+          }
+          ctx.restore();
 
           // Blade slash visual trail
           ctx.strokeStyle = itemDef.color || '#fff';
-          ctx.lineWidth = 3;
+          ctx.lineWidth = 2.5;
           ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.lineTo(this.facing * 18, -6);
+          ctx.arc(0, 0, 18, this.facing > 0 ? -0.8 : 0.8, this.facing > 0 ? 0.8 : -0.8, this.facing < 0);
           ctx.stroke();
         } else {
           // Idle holding angle
-          ctx.rotate(this.facing > 0 ? 0.3 : -0.3);
-          ctx.fillStyle = itemDef.color || '#fff';
-          ctx.fillRect(0, -2, this.facing * 12, 4);
+          ctx.rotate(this.facing > 0 ? 0.25 : -0.25);
+
+          // Arm sleeve & hand
+          ctx.fillStyle = '#1e88e5';
+          ctx.fillRect(0, -2, this.facing * 6, 4);
+          ctx.fillStyle = '#ffcc80';
+          ctx.fillRect(this.facing > 0 ? 5 : -8, -2, 3, 4);
+
+          // Render authentic held item sprite idle in hand
+          ctx.save();
+          if (this.facing > 0) {
+            ItemSprites.draw(ctx, selected.item, 4, -12, 16);
+          } else {
+            ctx.scale(-1, 1);
+            ItemSprites.draw(ctx, selected.item, 4, -12, 16);
+          }
+          ctx.restore();
         }
         ctx.restore();
       }
+    } else {
+      // Empty hand resting
+      ctx.fillStyle = '#1e88e5';
+      ctx.fillRect(px + (this.facing > 0 ? 11 : 5), py + 14, this.facing * 4, 8);
+      ctx.fillStyle = '#ffcc80';
+      ctx.fillRect(px + (this.facing > 0 ? 11 : 5), py + 22, this.facing * 4, 3);
     }
 
     // Breath bubbles if underwater

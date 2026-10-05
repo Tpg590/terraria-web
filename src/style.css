@@ -369,6 +369,45 @@ html, body {
   margin-top: 12px;
 }
 
+/* Chest Storage Section */
+.chest-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 2px dashed #a86536;
+}
+
+.chest-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.chest-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.chest-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 40px);
+  gap: 4px;
+  background: #18130e;
+  padding: 8px;
+  border: 2px solid #a86536;
+  border-radius: 4px;
+}
+
+.chest-slot {
+  border-color: #8c532b !important;
+  background: #251b12 !important;
+}
+
+.chest-slot:hover {
+  border-color: #ffd700 !important;
+  background: #3b2c1e !important;
+}
+
 .trash-slot-container {
   display: flex;
   align-items: center;

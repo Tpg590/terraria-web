@@ -73,21 +73,61 @@ export class NetworkManager {
     }
   }
 
+  encodeRLE(arr) {
+    const rle = [];
+    if (!arr || arr.length === 0) return rle;
+    let current = arr[0];
+    let count = 1;
+    for (let i = 1; i < arr.length; i++) {
+      if (arr[i] === current && count < 65535) {
+        count++;
+      } else {
+        rle.push(current, count);
+        current = arr[i];
+        count = 1;
+      }
+    }
+    rle.push(current, count);
+    return rle;
+  }
+
+  static decodeRLE(rle, length) {
+    const arr = new Uint8Array(length);
+    let idx = 0;
+    for (let i = 0; i < rle.length; i += 2) {
+      const val = rle[i];
+      const count = rle[i + 1];
+      arr.fill(val, idx, idx + count);
+      idx += count;
+    }
+    return arr;
+  }
+
   setupHostConnection(conn) {
     conn.on('open', () => {
       this.connections.set(conn.peer, conn);
 
-      // Send initial world state to the newly connected player
+      // Send initial world state using Run-Length Encoding (RLE) to guarantee small packet size
+      const tilesRle = this.encodeRLE(this.game.world.tiles);
+      const wallsRle = this.encodeRLE(this.game.world.walls);
+      const chestsArr = Array.from(this.game.world.chests.entries());
+
       const worldData = {
         type: 'WORLD_INIT',
         seed: this.game.world.seed,
         width: this.game.world.width,
         height: this.game.world.height,
         timeOfDay: this.game.world.timeOfDay,
-        tiles: Array.from(this.game.world.tiles),
-        walls: Array.from(this.game.world.walls)
+        tilesRle,
+        wallsRle,
+        chests: chestsArr
       };
-      conn.send(worldData);
+
+      try {
+        conn.send(worldData);
+      } catch (err) {
+        console.error('Failed to send WORLD_INIT:', err);
+      }
 
       if (this.onStatusChange) {
         this.onStatusChange({ status: 'player_joined', count: this.connections.size });
@@ -262,7 +302,7 @@ export class NetworkManager {
         facing: player.facing,
         isSwinging: player.isSwinging,
         swingProgress: player.swingProgress,
-        selectedItem: player.getSelectedItem() ? player.getSelectedItem().name : null,
+        selectedItem: player.getSelectedItem() ? player.getSelectedItem().item : null,
         hp: player.hp,
         maxHp: player.maxHp
       }

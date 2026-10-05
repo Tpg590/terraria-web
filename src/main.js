@@ -18,6 +18,7 @@ import { InventoryUI } from './ui/InventoryUI.js';
 import { MultiplayerModal } from './ui/MultiplayerModal.js';
 import { SettingsModal } from './ui/SettingsModal.js';
 import { TouchControls } from './ui/TouchControls.js';
+import { ItemSprites } from './core/ItemSprites.js';
 
 class TerrariaGame {
   constructor() {
@@ -235,7 +236,7 @@ class TerrariaGame {
 
     // Open Chest
     if (tile === TILES.CHEST) {
-      this.inventoryUI.open();
+      this.inventoryUI.openChest(tx, ty);
       this.addNotification('Opened chest!');
       return;
     }
@@ -276,8 +277,23 @@ class TerrariaGame {
 
   applyReceivedWorld(data) {
     this.world = new World(this, data.width, data.height, data.seed || 12345);
-    this.world.tiles = new Uint8Array(data.tiles);
-    this.world.walls = new Uint8Array(data.walls);
+
+    if (data.tilesRle) {
+      this.world.tiles = NetworkManager.decodeRLE(data.tilesRle, data.width * data.height);
+    } else if (data.tiles) {
+      this.world.tiles = new Uint8Array(data.tiles);
+    }
+
+    if (data.wallsRle) {
+      this.world.walls = NetworkManager.decodeRLE(data.wallsRle, data.width * data.height);
+    } else if (data.walls) {
+      this.world.walls = new Uint8Array(data.walls);
+    }
+
+    if (data.chests) {
+      this.world.chests = new Map(data.chests);
+    }
+
     if (data.timeOfDay !== undefined) this.world.timeOfDay = data.timeOfDay;
 
     const px = data.player ? data.player.x : (data.width / 2) * 16;
@@ -294,6 +310,11 @@ class TerrariaGame {
       if (data.player.inventory) this.player.inventory = data.player.inventory;
       if (data.player.hp) this.player.hp = data.player.hp;
       if (data.player.maxHp) this.player.maxHp = data.player.maxHp;
+    }
+
+    // Immediately inform host of client position
+    if (this.network && !this.network.isHost && this.network.connected) {
+      this.network.broadcastPlayer(this.player);
     }
   }
 
@@ -449,6 +470,16 @@ class TerrariaGame {
       this.player.useSelectedItem(this.input.worldMouseX, this.input.worldMouseY);
     }
 
+    // Auto-close chest if player moves too far
+    if (this.inventoryUI.isOpen && this.inventoryUI.activeChestCoords) {
+      const pTx = Math.floor((this.player.x + this.player.width / 2) / 16);
+      const pTy = Math.floor((this.player.y + this.player.height / 2) / 16);
+      const dist = Math.hypot(pTx - this.inventoryUI.activeChestCoords.tx, pTy - this.inventoryUI.activeChestCoords.ty);
+      if (dist > 6) {
+        this.inventoryUI.close();
+      }
+    }
+
     // Monster spawning & AI
     this.updateMonsterSpawning(dt);
     for (const enemy of this.enemies) {
@@ -585,6 +616,56 @@ class TerrariaGame {
     ctx.fillStyle = '#37474f';
     ctx.fillRect(px + 4, py + 24, 5, 12);
     ctx.fillRect(px + 11, py + 24, 5, 12);
+
+    // Remote player held item & arm
+    if (remote.selectedItem) {
+      ctx.save();
+      const handX = remote.facing > 0 ? px + 12 : px + 8;
+      const handY = py + 16;
+      ctx.translate(handX, handY);
+
+      if (remote.isSwinging) {
+        const swingAngle = remote.facing > 0
+          ? -Math.PI * 0.45 + (remote.swingProgress || 0.5) * Math.PI * 0.95
+          : Math.PI * 0.45 - (remote.swingProgress || 0.5) * Math.PI * 0.95;
+        ctx.rotate(swingAngle);
+
+        ctx.fillStyle = '#43a047';
+        ctx.fillRect(0, -2, remote.facing * 8, 4);
+        ctx.fillStyle = '#ffcc80';
+        ctx.fillRect(remote.facing > 0 ? 6 : -9, -2, 3, 4);
+
+        ctx.save();
+        if (remote.facing > 0) {
+          ItemSprites.draw(ctx, remote.selectedItem, 4, -14, 18);
+        } else {
+          ctx.scale(-1, 1);
+          ItemSprites.draw(ctx, remote.selectedItem, 4, -14, 18);
+        }
+        ctx.restore();
+      } else {
+        ctx.rotate(remote.facing > 0 ? 0.25 : -0.25);
+        ctx.fillStyle = '#43a047';
+        ctx.fillRect(0, -2, remote.facing * 6, 4);
+        ctx.fillStyle = '#ffcc80';
+        ctx.fillRect(remote.facing > 0 ? 5 : -8, -2, 3, 4);
+
+        ctx.save();
+        if (remote.facing > 0) {
+          ItemSprites.draw(ctx, remote.selectedItem, 4, -12, 16);
+        } else {
+          ctx.scale(-1, 1);
+          ItemSprites.draw(ctx, remote.selectedItem, 4, -12, 16);
+        }
+        ctx.restore();
+      }
+      ctx.restore();
+    } else {
+      ctx.fillStyle = '#43a047';
+      ctx.fillRect(px + (remote.facing > 0 ? 11 : 5), py + 14, remote.facing * 4, 8);
+      ctx.fillStyle = '#ffcc80';
+      ctx.fillRect(px + (remote.facing > 0 ? 11 : 5), py + 22, remote.facing * 4, 3);
+    }
 
     // Remote player name tag above head
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';

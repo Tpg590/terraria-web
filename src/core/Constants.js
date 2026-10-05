@@ -366,6 +366,29 @@ export const ITEMS = {
     icon: 'axe_iron',
     color: '#b09f8c'
   },
+  // Hammers (Exclusively for breaking background walls)
+  wooden_hammer: {
+    name: 'Wooden Hammer',
+    type: 'tool',
+    toolType: 'hammer',
+    power: 25,
+    damage: 4,
+    useTime: 20,
+    range: 4.5,
+    icon: 'hammer_wood',
+    color: '#86512e'
+  },
+  iron_hammer: {
+    name: 'Iron Hammer',
+    type: 'tool',
+    toolType: 'hammer',
+    power: 45,
+    damage: 7,
+    useTime: 17,
+    range: 5,
+    icon: 'hammer_iron',
+    color: '#b09f8c'
+  },
   // Weapons
   wooden_sword: {
     name: 'Wooden Sword',
@@ -556,6 +579,27 @@ export const ITEMS = {
     maxStack: 999,
     color: '#4f2e18'
   },
+  stone_wall: {
+    name: 'Stone Wall',
+    type: 'wall',
+    tileId: TILES.STONE_WALL,
+    maxStack: 999,
+    color: '#464646'
+  },
+  glass_block: {
+    name: 'Glass Block',
+    type: 'tile',
+    tileId: TILES.GLASS,
+    maxStack: 999,
+    color: 'rgba(180, 225, 255, 0.4)'
+  },
+  cactus: {
+    name: 'Cactus',
+    type: 'tile',
+    tileId: TILES.CACTUS,
+    maxStack: 999,
+    color: '#5b8c38'
+  },
   // Ores & Crafting Materials
   copper_ore: {
     name: 'Copper Ore',
@@ -709,6 +753,18 @@ export const RECIPES = [
   },
   // Work Bench recipes
   {
+    result: 'wooden_hammer',
+    count: 1,
+    requires: [{ item: 'wood', count: 8 }],
+    station: 'workbench'
+  },
+  {
+    result: 'stone_wall',
+    count: 4,
+    requires: [{ item: 'stone_block', count: 1 }],
+    station: 'workbench'
+  },
+  {
     result: 'wooden_sword',
     count: 1,
     requires: [{ item: 'wood', count: 7 }],
@@ -810,6 +866,12 @@ export const RECIPES = [
     result: 'iron_axe',
     count: 1,
     requires: [{ item: 'iron_bar', count: 9 }, { item: 'wood', count: 3 }],
+    station: 'anvil'
+  },
+  {
+    result: 'iron_hammer',
+    count: 1,
+    requires: [{ item: 'iron_bar', count: 8 }, { item: 'wood', count: 3 }],
     station: 'anvil'
   },
   {

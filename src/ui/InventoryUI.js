@@ -1,5 +1,6 @@
 // ==========================================
-// TERRARIA WEB - INVENTORY & CRAFTING OVERLAY UI
+// TERRARIA WEB - INVENTORY & CHEST STORAGE UI
+// Crafting, 40 Inventory Slots, 20 Chest Slots, Loot/Deposit All
 // ==========================================
 
 import { ITEMS, RECIPES, TILES } from '../core/Constants.js';
@@ -11,7 +12,8 @@ export class InventoryUI {
     this.game = game;
     this.container = document.getElementById('inventory-overlay');
     this.isOpen = false;
-    this.heldSlotIndex = null; // Item currently held on cursor for moving
+    this.activeChestCoords = null; // { tx, ty } when chest is open
+    this.heldItem = null; // { source: 'inventory'|'chest', index: number }
 
     this.initDOM();
   }
@@ -22,7 +24,7 @@ export class InventoryUI {
     this.container.innerHTML = `
       <div class="terraria-panel inventory-panel">
         <div class="panel-header">
-          <span>INVENTORY</span>
+          <span id="inv-panel-title">INVENTORY</span>
           <button id="btn-close-inv" class="close-btn">&times;</button>
         </div>
         
@@ -33,7 +35,7 @@ export class InventoryUI {
             <div id="crafting-list" class="crafting-list"></div>
           </div>
 
-          <!-- Inventory Slots -->
+          <!-- Inventory & Chest Slots Column -->
           <div class="slots-section">
             <div class="section-title">ITEMS (1-10 are Hotbar)</div>
             <div id="inv-slots-grid" class="inv-slots-grid"></div>
@@ -41,11 +43,23 @@ export class InventoryUI {
             <div class="trash-equipment-row">
               <div class="trash-slot-container">
                 <span class="label">TRASH</span>
-                <div id="trash-slot" class="inv-slot trash-slot" title="Drag or click here to delete item">🗑️</div>
+                <div id="trash-slot" class="inv-slot trash-slot" title="Drag or click here to delete held item">🗑️</div>
               </div>
               <div class="chest-status" id="chest-status">
                 <button id="btn-save-game" class="terra-btn">💾 Quick Save</button>
               </div>
+            </div>
+
+            <!-- Chest Storage Section -->
+            <div id="chest-section" class="chest-section hidden">
+              <div class="chest-header-row">
+                <div class="section-title">📦 CHEST STORAGE (20 SLOTS)</div>
+                <div class="chest-buttons">
+                  <button id="btn-loot-all" class="terra-btn small-btn">📥 Loot All</button>
+                  <button id="btn-deposit-all" class="terra-btn small-btn">📤 Deposit All</button>
+                </div>
+              </div>
+              <div id="chest-slots-grid" class="chest-slots-grid"></div>
             </div>
           </div>
         </div>
@@ -60,11 +74,24 @@ export class InventoryUI {
       this.game.saveWorld();
     });
 
-    // Trash click
+    document.getElementById('btn-loot-all')?.addEventListener('click', () => {
+      this.lootAllFromChest();
+    });
+
+    document.getElementById('btn-deposit-all')?.addEventListener('click', () => {
+      this.depositAllToChest();
+    });
+
+    // Trash click to delete held item
     document.getElementById('trash-slot')?.addEventListener('click', () => {
-      if (this.heldSlotIndex !== null) {
-        this.game.player.inventory[this.heldSlotIndex] = null;
-        this.heldSlotIndex = null;
+      if (this.heldItem) {
+        if (this.heldItem.source === 'inventory') {
+          this.game.player.inventory[this.heldItem.index] = null;
+        } else if (this.heldItem.source === 'chest' && this.activeChestCoords) {
+          const chestItems = this.getChestItems();
+          if (chestItems) chestItems[this.heldItem.index] = null;
+        }
+        this.heldItem = null;
         soundEngine.playDigDirt();
         this.refresh();
       }
@@ -83,21 +110,41 @@ export class InventoryUI {
     this.isOpen = true;
     this.game.inventoryOpen = true;
     this.container.classList.remove('hidden');
-    this.heldSlotIndex = null;
+    this.heldItem = null;
     this.refresh();
+  }
+
+  openChest(tx, ty) {
+    this.activeChestCoords = { tx, ty };
+    this.open();
+    soundEngine.playPlace();
   }
 
   close() {
     this.isOpen = false;
     this.game.inventoryOpen = false;
     this.container.classList.add('hidden');
-    this.heldSlotIndex = null;
+    this.activeChestCoords = null;
+    this.heldItem = null;
+    document.getElementById('chest-section')?.classList.add('hidden');
+  }
+
+  getChestItems() {
+    if (!this.activeChestCoords || !this.game.world) return null;
+    const key = `${this.activeChestCoords.tx},${this.activeChestCoords.ty}`;
+    let items = this.game.world.chests.get(key);
+    if (!items) {
+      items = new Array(20).fill(null);
+      this.game.world.chests.set(key, items);
+    }
+    return items;
   }
 
   refresh() {
     if (!this.isOpen) return;
     this.renderInventorySlots();
     this.renderCraftingRecipes();
+    this.renderChestSlots();
   }
 
   renderInventorySlots() {
@@ -112,7 +159,9 @@ export class InventoryUI {
       const slot = document.createElement('div');
       slot.className = 'inv-slot';
       if (i < 10) slot.classList.add('hotbar-slot');
-      if (this.heldSlotIndex === i) slot.classList.add('selected-held');
+      if (this.heldItem && this.heldItem.source === 'inventory' && this.heldItem.index === i) {
+        slot.classList.add('selected-held');
+      }
 
       const itemData = player.inventory[i];
       if (itemData) {
@@ -135,54 +184,196 @@ export class InventoryUI {
         }
       }
 
-      slot.addEventListener('click', () => this.handleSlotClick(i));
+      slot.addEventListener('click', () => this.handleSlotClick('inventory', i));
       grid.appendChild(slot);
     }
   }
 
-  handleSlotClick(index) {
+  renderChestSlots() {
+    const chestSection = document.getElementById('chest-section');
+    const grid = document.getElementById('chest-slots-grid');
+    if (!chestSection || !grid) return;
+
+    if (!this.activeChestCoords) {
+      chestSection.classList.add('hidden');
+      return;
+    }
+
+    chestSection.classList.remove('hidden');
+    grid.innerHTML = '';
+
+    const chestItems = this.getChestItems();
+    if (!chestItems) return;
+
+    for (let i = 0; i < 20; i++) {
+      const slot = document.createElement('div');
+      slot.className = 'inv-slot chest-slot';
+      if (this.heldItem && this.heldItem.source === 'chest' && this.heldItem.index === i) {
+        slot.classList.add('selected-held');
+      }
+
+      const itemData = chestItems[i];
+      if (itemData) {
+        const def = ITEMS[itemData.item];
+        if (def) {
+          slot.title = `${def.name} (Count: ${itemData.count})\nCHEST SLOT ${i + 1}`;
+          
+          const icon = document.createElement('img');
+          icon.className = 'item-icon pixelated';
+          icon.src = ItemSprites.getDataUrl(itemData.item);
+          icon.alt = def.name;
+          slot.appendChild(icon);
+
+          if (itemData.count > 1) {
+            const countLabel = document.createElement('span');
+            countLabel.className = 'item-count';
+            countLabel.textContent = itemData.count;
+            slot.appendChild(countLabel);
+          }
+        }
+      }
+
+      slot.addEventListener('click', () => this.handleSlotClick('chest', i));
+      grid.appendChild(slot);
+    }
+  }
+
+  handleSlotClick(targetSource, targetIndex) {
     const player = this.game.player;
     if (!player) return;
 
+    const chestItems = this.getChestItems();
+    const getSlotList = (src) => src === 'inventory' ? player.inventory : chestItems;
+
     soundEngine.playItemPickup();
 
-    if (this.heldSlotIndex === null) {
-      // Pick up item from slot
-      if (player.inventory[index]) {
-        this.heldSlotIndex = index;
+    // 1. If not holding any item yet, pick up item from this slot
+    if (!this.heldItem) {
+      const list = getSlotList(targetSource);
+      if (list && list[targetIndex]) {
+        this.heldItem = { source: targetSource, index: targetIndex };
       }
-    } else {
-      // Swap or combine items
-      if (this.heldSlotIndex === index) {
-        this.heldSlotIndex = null; // Deselect
-      } else {
-        const source = player.inventory[this.heldSlotIndex];
-        const target = player.inventory[index];
+      this.refresh();
+      return;
+    }
 
-        // If same item and stackable, merge stacks
-        if (source && target && source.item === target.item) {
-          const def = ITEMS[source.item];
-          const max = def ? def.maxStack || 999 : 999;
-          const space = max - target.count;
-          if (space > 0) {
-            const add = Math.min(space, source.count);
-            target.count += add;
-            source.count -= add;
-            if (source.count <= 0) {
-              player.inventory[this.heldSlotIndex] = null;
-            }
-          }
-        } else {
-          // Swap positions
-          player.inventory[this.heldSlotIndex] = target;
-          player.inventory[index] = source;
+    // 2. Already holding an item -> move, merge or swap!
+    const sourceList = getSlotList(this.heldItem.source);
+    const destList = getSlotList(targetSource);
+    if (!sourceList || !destList) return;
+
+    const sourceItem = sourceList[this.heldItem.index];
+    const targetItem = destList[targetIndex];
+
+    // Deselect if clicking same slot
+    if (this.heldItem.source === targetSource && this.heldItem.index === targetIndex) {
+      this.heldItem = null;
+      this.refresh();
+      return;
+    }
+
+    // A. If target slot is empty: move item directly
+    if (!targetItem) {
+      destList[targetIndex] = sourceItem;
+      sourceList[this.heldItem.index] = null;
+      this.heldItem = null;
+    }
+    // B. If same item and stackable: merge stacks
+    else if (sourceItem && sourceItem.item === targetItem.item) {
+      const def = ITEMS[sourceItem.item];
+      const max = def ? def.maxStack || 999 : 999;
+      const space = max - targetItem.count;
+      if (space > 0) {
+        const add = Math.min(space, sourceItem.count);
+        targetItem.count += add;
+        sourceItem.count -= add;
+        if (sourceItem.count <= 0) {
+          sourceList[this.heldItem.index] = null;
+          this.heldItem = null;
         }
-
-        this.heldSlotIndex = null;
+      } else {
+        // Swap slots
+        destList[targetIndex] = sourceItem;
+        sourceList[this.heldItem.index] = targetItem;
+        this.heldItem = null;
       }
+    }
+    // C. Different item: swap slots
+    else {
+      destList[targetIndex] = sourceItem;
+      sourceList[this.heldItem.index] = targetItem;
+      this.heldItem = null;
     }
 
     this.refresh();
+  }
+
+  lootAllFromChest() {
+    const player = this.game.player;
+    const chestItems = this.getChestItems();
+    if (!player || !chestItems) return;
+
+    let lootedAny = false;
+    for (let i = 0; i < chestItems.length; i++) {
+      const slot = chestItems[i];
+      if (slot) {
+        const added = player.addItem(slot.item, slot.count);
+        if (added) {
+          chestItems[i] = null;
+          lootedAny = true;
+        }
+      }
+    }
+
+    if (lootedAny) {
+      soundEngine.playItemPickup();
+      this.game.addNotification('Looted all items from chest!');
+      this.refresh();
+    }
+  }
+
+  depositAllToChest() {
+    const player = this.game.player;
+    const chestItems = this.getChestItems();
+    if (!player || !chestItems) return;
+
+    let depositedAny = false;
+    // Depositing from inventory into chest
+    for (let i = 10; i < player.inventory.length; i++) { // Preserve hotbar (0-9)
+      const invSlot = player.inventory[i];
+      if (!invSlot) continue;
+
+      // Find stack or empty slot in chest
+      for (let c = 0; c < chestItems.length; c++) {
+        const cSlot = chestItems[c];
+        if (!cSlot) {
+          chestItems[c] = invSlot;
+          player.inventory[i] = null;
+          depositedAny = true;
+          break;
+        } else if (cSlot.item === invSlot.item) {
+          const def = ITEMS[invSlot.item];
+          const max = def ? def.maxStack || 999 : 999;
+          const space = max - cSlot.count;
+          if (space > 0) {
+            const add = Math.min(space, invSlot.count);
+            cSlot.count += add;
+            invSlot.count -= add;
+            depositedAny = true;
+            if (invSlot.count <= 0) {
+              player.inventory[i] = null;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (depositedAny) {
+      soundEngine.playPlace();
+      this.game.addNotification('Deposited items into chest!');
+      this.refresh();
+    }
   }
 
   // Detect nearby crafting stations (Workbench, Furnace, Anvil)

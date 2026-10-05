@@ -87,12 +87,70 @@ export class World {
     }
   }
 
-  // Damage tile with pickaxe or axe (supports both foreground block layer and background wall layer)
+  // Damage tile or wall based on tool role:
+  // - HAMMER: strictly for breaking background walls
+  // - PICKAXE: strictly for breaking foreground blocks (cannot break walls or trees)
+  // - AXE: strictly for chopping trees (tree_trunk & leaves)
   damageTile(tx, ty, toolPower, toolType) {
     const tile = this.getTile(tx, ty);
     const wall = this.getWall(tx, ty);
 
-    // If there is a foreground block or tree trunk/leaves
+    // 1. HAMMER: Only damages background walls!
+    if (toolType === 'hammer') {
+      // Cannot break wall behind a solid foreground block
+      const propTile = TILE_PROPERTIES[tile];
+      if (tile !== TILES.AIR && propTile && propTile.solid) {
+        return false;
+      }
+
+      if (wall === TILES.AIR) return false;
+      const prop = TILE_PROPERTIES[wall];
+      if (!prop) return false;
+
+      const key = `w_${tx},${ty}`;
+      let record = this.miningTiles.get(key);
+      if (!record) {
+        record = {
+          damage: 0,
+          maxDamage: prop.hardness || 15,
+          lastHitTime: Date.now()
+        };
+        this.miningTiles.set(key, record);
+      }
+
+      record.damage += toolPower;
+      record.lastHitTime = Date.now();
+      soundEngine.playDigDirt();
+
+      // Block debris
+      this.game.spawnDebris(tx * TILE_SIZE + 8, ty * TILE_SIZE + 8, prop.color || '#666');
+
+      if (record.damage >= record.maxDamage) {
+        if (prop.drop) {
+          this.game.spawnItemDrop(tx * TILE_SIZE + 4, ty * TILE_SIZE + 4, prop.drop, 1);
+        }
+        this.setWall(tx, ty, TILES.AIR, true);
+        this.miningTiles.delete(key);
+        return true;
+      }
+      return false;
+    }
+
+    // 2. AXE: Only chops trees (tree_trunk and leaves)
+    if (toolType === 'axe') {
+      if (tile !== TILES.TREE_TRUNK && tile !== TILES.LEAVES) {
+        return false;
+      }
+    }
+
+    // 3. PICKAXE: Exclusively damages foreground blocks (never background walls, and not trees)
+    if (toolType === 'pickaxe') {
+      if (tile === TILES.TREE_TRUNK || tile === TILES.LEAVES) {
+        return false; // Trees require an axe
+      }
+    }
+
+    // If there is a foreground block to mine
     if (tile !== TILES.AIR) {
       const prop = TILE_PROPERTIES[tile];
       if (!prop || !prop.hardness) return false;
@@ -126,36 +184,6 @@ export class World {
       // Broke block completely!
       if (record.damage >= record.maxDamage) {
         this.breakTile(tx, ty);
-        return true;
-      }
-      return false;
-    }
-    // If no foreground block, damage and break background wall!
-    else if (wall !== TILES.AIR) {
-      const prop = TILE_PROPERTIES[wall];
-      if (!prop) return false;
-
-      const key = `w_${tx},${ty}`;
-      let record = this.miningTiles.get(key);
-      if (!record) {
-        record = {
-          damage: 0,
-          maxDamage: prop.hardness || 15,
-          lastHitTime: Date.now()
-        };
-        this.miningTiles.set(key, record);
-      }
-
-      record.damage += toolPower;
-      record.lastHitTime = Date.now();
-      soundEngine.playChopWood();
-
-      if (record.damage >= record.maxDamage) {
-        if (prop.drop) {
-          this.game.spawnItemDrop(tx * TILE_SIZE + 4, ty * TILE_SIZE + 4, prop.drop, 1);
-        }
-        this.setWall(tx, ty, TILES.AIR, true);
-        this.miningTiles.delete(key);
         return true;
       }
       return false;

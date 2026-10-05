@@ -47,8 +47,14 @@ export class ItemDrop {
       }
     }
 
-    // Magnet suction towards player
-    if (this.age > this.pickupDelay && player) {
+    // Safe check: If item is completely invalid, remove after brief time
+    if (!ITEMS[this.itemId] && this.age > 2) {
+      this.markedForDeletion = true;
+      return;
+    }
+
+    // Magnet suction towards player (only if player has room to pick it up!)
+    if (this.age > this.pickupDelay && player && player.canPickup(this.itemId)) {
       const dx = (player.x + player.width / 2) - (this.x + 6);
       const dy = (player.y + player.height / 2) - (this.y + 6);
       const dist = Math.sqrt(dx * dx + dy * dy);
@@ -61,7 +67,7 @@ export class ItemDrop {
         this.grounded = false;
 
         // Pickup collision
-        if (dist < 22) {
+        if (dist < 24) {
           const added = player.addItem(this.itemId, this.count);
           if (added) {
             soundEngine.playItemPickup();

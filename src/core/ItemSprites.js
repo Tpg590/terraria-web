@@ -6,18 +6,20 @@ import { spriteLoader } from './SpriteLoader.js';
 
 export const ITEM_ASSET_MAP = {
   // Tools & Weapons
-  copper_pickaxe: '/assets/terraria/Item_198.png',
-  copper_axe: '/assets/terraria/Item_199.png',
-  copper_broadsword: '/assets/terraria/Item_201.png',
+  copper_pickaxe: '/assets/terraria/Item_1.png',
+  copper_axe: '/assets/terraria/Item_10.png',
+  copper_broadsword: '/assets/terraria/Item_4.png',
   wooden_sword: '/assets/terraria/Item_24.png',
   wooden_bow: '/assets/terraria/Item_39.png',
   wooden_arrow: '/assets/terraria/Item_40.png',
   iron_pickaxe: '/assets/terraria/Item_1.png',
   iron_axe: '/assets/terraria/Item_10.png',
   iron_broadsword: '/assets/terraria/Item_4.png',
-  iron_bow: '/assets/terraria/Item_99.png',
-  gold_pickaxe: '/assets/terraria/Item_204.png',
-  gold_broadsword: '/assets/terraria/Item_207.png',
+  iron_bow: '/assets/terraria/Item_39.png',
+  wooden_hammer: '/assets/terraria/Item_7.png',
+  iron_hammer: '/assets/terraria/Item_7.png',
+  gold_pickaxe: '/assets/terraria/Item_1.png',
+  gold_broadsword: '/assets/terraria/Item_4.png',
   starfury: '/assets/terraria/Item_65.png',
   magic_wand: '/assets/terraria/Item_114.png',
 
@@ -35,6 +37,9 @@ export const ITEM_ASSET_MAP = {
   anvil: '/assets/terraria/Item_35.png',
   chest: '/assets/terraria/Item_48.png',
   door: '/assets/terraria/Item_25.png',
+  dirt_wall: '/assets/terraria/Item_30.png',
+  stone_wall: '/assets/terraria/Item_26.png',
+  wood_wall: '/assets/terraria/Item_93.png',
 
   // Ores & Materials
   copper_ore: '/assets/terraria/Item_12.png',
@@ -127,6 +132,13 @@ export class ItemSprites {
       }
       ctx.fillStyle = '#dcdde1';
       ctx.fillRect(8 * s, 2 * s, 6 * s, 6 * s);
+    } else if (itemId.includes('hammer')) {
+      ctx.fillStyle = '#78431e';
+      for (let i = 0; i < 9; i++) {
+        ctx.fillRect((3 + i) * s, (13 - i) * s, 2 * s, 2 * s);
+      }
+      ctx.fillStyle = '#9e9e9e';
+      ctx.fillRect(8 * s, 2 * s, 7 * s, 6 * s);
     } else if (itemId === 'torch') {
       ctx.fillStyle = '#7a4218';
       ctx.fillRect(6 * s, 7 * s, 4 * s, 8 * s);
@@ -145,8 +157,11 @@ export class ItemSprites {
       ctx.arc(8 * s, 9 * s, 5 * s, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      ctx.fillStyle = '#ffd700';
-      ctx.fillRect(2 * s, 2 * s, 12 * s, 12 * s);
+      // Clean fallback: shaded item box with outline
+      ctx.fillStyle = '#8b7355';
+      ctx.fillRect(3 * s, 3 * s, 10 * s, 10 * s);
+      ctx.fillStyle = '#a68a68';
+      ctx.fillRect(4 * s, 4 * s, 8 * s, 8 * s);
     }
 
     ctx.restore();
