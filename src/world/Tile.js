@@ -215,18 +215,22 @@ export class TileRenderer {
     }
   }
 
-  // Draw background wall behind tiles
-  static renderWall(ctx, wallId, dx, dy) {
-    if (wallId === TILES.AIR) return;
-    const prop = TILE_PROPERTIES[wallId];
-    if (!prop) return;
+    // Draw background wall behind tiles
+    static renderWall(ctx, wallId, dx, dy) {
+      if (wallId === TILES.AIR) return;
+      const prop = TILE_PROPERTIES[wallId];
+      if (!prop) return;
 
-    ctx.fillStyle = prop.color;
-    ctx.fillRect(dx, dy, TILE_SIZE, TILE_SIZE);
+      // Render with reduced opacity to avoid solid gray overlay
+      const previousAlpha = ctx.globalAlpha;
+      ctx.globalAlpha = prop.opacity !== undefined ? prop.opacity : 0.6;
+      ctx.fillStyle = prop.color;
+      ctx.fillRect(dx, dy, TILE_SIZE, TILE_SIZE);
+      ctx.globalAlpha = previousAlpha;
 
-    // Subtle dark grid outline for realistic wall planks/bricks
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-    ctx.fillRect(dx, dy, TILE_SIZE, 1);
-    ctx.fillRect(dx, dy, 1, TILE_SIZE);
-  }
+      // Subtle dark grid outline for realistic wall planks/bricks
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+      ctx.fillRect(dx, dy, TILE_SIZE, 1);
+      ctx.fillRect(dx, dy, 1, TILE_SIZE);
+    }
 }

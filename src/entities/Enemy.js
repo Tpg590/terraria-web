@@ -127,22 +127,32 @@ export class Enemy {
   }
 
   updateZombieAI(dt, world, player, dx) {
-    // Zombie walks towards player
-    if (this.grounded) {
-      this.vx = Math.sign(dx) * this.speed;
+    // Zombie walks towards player and always faces them
+    this.facing = dx >= 0 ? 1 : -1;
 
-      // Jump over obstacles (if block directly in front is solid)
+    if (this.grounded) {
+      this.vx = this.facing * this.speed;
+
+      // Detect obstacle directly in front of the zombie (foot and head level)
       const frontTx = Math.floor((this.x + (this.facing > 0 ? this.width + 4 : -4)) / TILE_SIZE);
       const footTy = Math.floor((this.y + this.height - 4) / TILE_SIZE);
-      const blockAhead = world.getTile(frontTx, footTy);
-      const prop = TILE_PROPERTIES[blockAhead];
-
-      if (prop && prop.solid) {
+      const headTy = footTy - 1;
+      const blockAheadFoot = world.getTile(frontTx, footTy);
+      const blockAheadHead = world.getTile(frontTx, headTy);
+      const propFoot = TILE_PROPERTIES[blockAheadFoot];
+      const propHead = TILE_PROPERTIES[blockAheadHead];
+      const solid = (propFoot && propFoot.solid) || (propHead && propHead.solid);
+      if (solid) {
+        // Jump while preserving forward momentum to clear the block
         this.vy = -6.0;
         this.grounded = false;
       }
+    } else {
+      // In air, keep horizontal momentum
+      this.vx = this.facing * this.speed;
     }
 
+    // Apply gravity
     this.vy += 0.4;
     if (this.vy > 10) this.vy = 10;
 
@@ -158,7 +168,7 @@ export class Enemy {
     this.vx += (targetVx - this.vx) * 0.05;
     this.vy += (targetVy - this.vy) * 0.05;
 
-    // Horizontal Movement & Solid Block Collision
+    // Horizontal Movement & Solid Block Collision (tiles and walls)
     this.x += this.vx;
     const startTx = Math.floor(this.x / TILE_SIZE);
     const endTx = Math.floor((this.x + this.width) / TILE_SIZE);
@@ -167,15 +177,18 @@ export class Enemy {
 
     for (let ty = startTy; ty <= endTy; ty++) {
       for (let tx = startTx; tx <= endTx; tx++) {
-        const prop = TILE_PROPERTIES[world.getTile(tx, ty)];
-        if (prop && prop.solid && !prop.platform) {
+        const tileProp = TILE_PROPERTIES[world.getTile(tx, ty)];
+        const wallProp = TILE_PROPERTIES[world.getWall(tx, ty)];
+        const solid = (tileProp && tileProp.solid && !tileProp.platform) ||
+                      (wallProp && wallProp.solid && !wallProp.platform);
+        if (solid) {
+          // Stop horizontal movement against solid block/wall
           if (this.vx > 0) {
             this.x = tx * TILE_SIZE - this.width;
-            this.vx = -this.vx * 0.6;
           } else if (this.vx < 0) {
             this.x = (tx + 1) * TILE_SIZE;
-            this.vx = -this.vx * 0.6;
           }
+          this.vx = 0;
         }
       }
     }
@@ -382,8 +395,8 @@ export class Enemy {
     const px = this.x - camera.x;
     const py = this.y - camera.y;
 
-    // Flash white when hit
-    if (this.invulnerableTimer > 0.08) {
+    // Flash white when hit (shorter flash for smoother effect)
+    if (this.invulnerableTimer > 0.04) {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(px, py, this.width, this.height);
       return;
