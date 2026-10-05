@@ -1,0 +1,18 @@
+{
+  "name": "Terraria Web",
+  "short_name": "Terraria",
+  "description": "Terraria 2D sandbox game for Web, PC and Mobile.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#0b0c16",
+  "theme_color": "#0b0c16",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

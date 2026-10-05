@@ -1,0 +1,598 @@
+/* ==========================================
+   TERRARIA WEB - RETRO PIXEL DESIGN SYSTEM
+   ========================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #0b0c16;
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  color: #f0f0f0;
+}
+
+#app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* Main Game Canvas */
+#game-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  cursor: crosshair;
+}
+
+/* Top Navigation Bar / Quick Actions */
+.top-menu-bar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.top-bar-btn {
+  background: rgba(22, 27, 40, 0.85);
+  color: #ffd54f;
+  border: 2px solid #b8860b;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  transition: all 0.15s ease;
+  backdrop-filter: blur(4px);
+}
+
+.top-bar-btn:hover {
+  background: #3a2e1c;
+  border-color: #ffd700;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.top-bar-btn:active {
+  transform: translateY(0);
+}
+
+/* Modals & Panels */
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(5, 7, 12, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  backdrop-filter: blur(3px);
+  padding: 16px;
+}
+
+.modal-overlay.hidden {
+  display: none !important;
+}
+
+.terraria-panel {
+  background: #1c2230;
+  border: 4px solid #b8860b;
+  border-radius: 6px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(0, 0, 0, 0.6);
+  padding: 18px;
+  color: #ffffff;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #ffd700;
+  border-bottom: 2px solid #5a4515;
+  padding-bottom: 10px;
+  margin-bottom: 14px;
+  text-shadow: 1px 1px 2px #000;
+}
+
+.close-btn {
+  background: #c62828;
+  border: 2px solid #ef5350;
+  color: #fff;
+  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  line-height: 22px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: #e53935;
+}
+
+/* Common Terraria Button */
+.terra-btn {
+  background: #283747;
+  color: #ffffff;
+  border: 2px solid #566573;
+  padding: 8px 14px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s ease;
+}
+
+.terra-btn:hover {
+  background: #34495e;
+  border-color: #ffd700;
+  color: #ffd700;
+}
+
+.terra-btn.primary-btn {
+  background: #b8860b;
+  border-color: #ffd700;
+  color: #000000;
+  font-weight: bold;
+}
+
+.terra-btn.primary-btn:hover {
+  background: #d4af37;
+}
+
+.terra-btn.danger-btn {
+  background: #7b1fa2;
+  border-color: #ba68c8;
+}
+
+.terra-btn.small-btn {
+  font-size: 9px;
+  padding: 5px 8px;
+}
+
+.terra-input {
+  background: #11141c;
+  border: 2px solid #4b5563;
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: #ffd700;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 11px;
+  outline: none;
+}
+
+.terra-input:focus {
+  border-color: #ffd700;
+}
+
+.terra-select {
+  background: #11141c;
+  border: 2px solid #4b5563;
+  color: #fff;
+  padding: 6px 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  border-radius: 4px;
+}
+
+/* ==========================================
+   INVENTORY & CRAFTING LAYOUT
+   ========================================== */
+.inventory-panel {
+  width: 740px;
+}
+
+.inv-content-grid {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 16px;
+}
+
+.section-title {
+  font-size: 10px;
+  color: #ffd54f;
+  margin-bottom: 8px;
+}
+
+/* Crafting List */
+.crafting-list {
+  background: #121620;
+  border: 2px solid #374151;
+  border-radius: 4px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.craft-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #2d3748;
+  background: #1a202c;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.craft-item.craftable {
+  border-color: #48bb78;
+  background: #1c2e24;
+}
+
+.craft-item.craftable:hover {
+  background: #274b33;
+  border-color: #68d391;
+  transform: translateX(3px);
+}
+
+.craft-item.not-craftable {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.craft-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  border: 1px solid #4a5568;
+  flex-shrink: 0;
+}
+
+.craft-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.craft-name {
+  font-size: 9px;
+  color: #f7fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.craft-reqs {
+  font-size: 7.5px;
+  color: #cbd5e0;
+}
+
+/* Inventory Slots Grid */
+.inv-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 40px);
+  gap: 4px;
+  background: #11141d;
+  padding: 8px;
+  border: 2px solid #374151;
+  border-radius: 4px;
+}
+
+.inv-slot {
+  width: 40px;
+  height: 40px;
+  background: #1e2433;
+  border: 2px solid #4a5568;
+  border-radius: 4px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.1s ease;
+}
+
+.inv-slot:hover {
+  border-color: #ffd700;
+  background: #293245;
+}
+
+.inv-slot.hotbar-slot {
+  border-color: #b8860b;
+}
+
+.inv-slot.selected-held {
+  border-color: #00e5ff;
+  box-shadow: 0 0 8px #00e5ff;
+}
+
+.item-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.item-count {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 8px;
+  color: #ffffff;
+  text-shadow: 1px 1px 1px #000;
+}
+
+.trash-equipment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.trash-slot-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trash-slot-container .label {
+  font-size: 9px;
+  color: #e53e3e;
+}
+
+.trash-slot {
+  border-color: #e53e3e;
+  font-size: 16px;
+}
+
+.trash-slot:hover {
+  border-color: #ff5252;
+  background: #4a1515;
+}
+
+/* ==========================================
+   MULTIPLAYER & SETTINGS PANELS
+   ========================================== */
+.multiplayer-panel, .settings-panel {
+  width: 480px;
+}
+
+.mp-description {
+  font-size: 9.5px;
+  color: #cbd5e0;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.mp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.mp-section h3, .setting-group h3 {
+  font-size: 11px;
+  color: #ffd54f;
+  margin-bottom: 4px;
+}
+
+.mp-section p {
+  font-size: 9px;
+  color: #a0aec0;
+}
+
+.host-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #11141f;
+  border: 1px solid #374151;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 6px;
+  font-size: 9.5px;
+}
+
+.room-code-badge {
+  color: #ffd700;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.status-badge {
+  font-size: 8.5px;
+  color: #68d391;
+}
+
+.join-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.mp-divider {
+  border: none;
+  border-top: 1px solid #374151;
+  margin: 12px 0;
+}
+
+.setting-group {
+  margin-bottom: 16px;
+  background: #11141e;
+  border: 1px solid #2d3748;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 9px;
+  margin-top: 8px;
+}
+
+.setting-row.buttons-row {
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.setting-row input[type="range"] {
+  accent-color: #ffd700;
+  cursor: pointer;
+}
+
+.file-import-row {
+  gap: 8px;
+}
+
+.file-btn {
+  display: inline-block;
+}
+
+/* ==========================================
+   IN-GAME CHAT OVERLAY
+   ========================================== */
+#chat-overlay {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  width: 320px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.chat-messages {
+  max-height: 120px;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.chat-entry {
+  background: rgba(0, 0, 0, 0.65);
+  border-left: 3px solid #ffd700;
+  padding: 4px 8px;
+  border-radius: 2px;
+  font-size: 9px;
+  line-height: 1.4;
+  color: #ffffff;
+  text-shadow: 1px 1px 1px #000;
+  transition: opacity 1s ease;
+}
+
+.chat-input-bar {
+  display: flex;
+  gap: 4px;
+  pointer-events: auto;
+}
+
+.chat-input {
+  flex: 1;
+  background: rgba(17, 20, 28, 0.85);
+  border: 1px solid #4a5568;
+  color: #ffd700;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8.5px;
+  padding: 6px 8px;
+  border-radius: 3px;
+  outline: none;
+}
+
+.chat-input:focus {
+  border-color: #ffd700;
+  background: rgba(17, 20, 28, 0.95);
+}
+
+.chat-send-btn {
+  background: #b8860b;
+  border: none;
+  color: #000;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  padding: 6px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* ==========================================
+   RESPONSIVE MOBILE STYLES
+   ========================================== */
+@media (max-width: 768px) {
+  .inventory-panel {
+    width: 96vw;
+    padding: 10px;
+  }
+
+  .inv-content-grid {
+    grid-template-columns: 1fr;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .crafting-list {
+    max-height: 140px;
+  }
+
+  .inv-slots-grid {
+    grid-template-columns: repeat(5, 38px);
+    justify-content: center;
+  }
+
+  .inv-slot {
+    width: 38px;
+    height: 38px;
+  }
+
+  .multiplayer-panel, .settings-panel {
+    width: 95vw;
+  }
+
+  #chat-overlay {
+    width: 220px;
+    bottom: 90px;
+  }
+
+  .top-menu-bar {
+    top: 65px; /* Move below HUD hotbar on mobile */
+    right: 8px;
+    gap: 4px;
+  }
+
+  .top-bar-btn {
+    font-size: 9px;
+    padding: 4px 6px;
+  }
+}

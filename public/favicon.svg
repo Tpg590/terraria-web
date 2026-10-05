@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Dirt Base -->
+  <rect x="0" y="0" width="64" height="64" fill="#6f3d1f" rx="6" />
+  <rect x="4" y="4" width="56" height="56" fill="#86512e" />
+  
+  <!-- Dirt Rocks / Details -->
+  <rect x="12" y="28" width="8" height="6" fill="#5c3314" />
+  <rect x="36" y="36" width="10" height="6" fill="#5c3314" />
+  <rect x="20" y="46" width="12" height="8" fill="#5c3314" />
+  <rect x="44" y="24" width="6" height="6" fill="#a4683a" />
+  <rect x="16" y="38" width="6" height="4" fill="#a4683a" />
+
+  <!-- Grass Top -->
+  <rect x="0" y="0" width="64" height="18" fill="#48b832" rx="6" />
+  <rect x="0" y="10" width="64" height="8" fill="#48b832" />
+  
+  <!-- Grass Blades Hanging Down -->
+  <rect x="6" y="18" width="6" height="8" fill="#348c31" />
+  <rect x="18" y="18" width="8" height="12" fill="#348c31" />
+  <rect x="32" y="18" width="6" height="6" fill="#348c31" />
+  <rect x="44" y="18" width="8" height="10" fill="#348c31" />
+  <rect x="54" y="18" width="6" height="6" fill="#348c31" />
+
+  <!-- Grass Highlights -->
+  <rect x="4" y="2" width="56" height="4" fill="#72d65c" />
+</svg>

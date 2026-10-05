@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0c16" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="Terraria 2D sandbox web game playable online and offline for PC and mobile." />
+    
+    <title>Terraria Web - 2D Sandbox Adventure</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.json" />
+  </head>
+  <body>
+    <div id="app-container">
+      <!-- Main Game Canvas -->
+      <canvas id="game-canvas"></canvas>
+
+      <!-- Quick Action Buttons (Top Right) -->
+      <nav class="top-menu-bar" aria-label="Game menu">
+        <button id="btn-open-inventory" class="top-bar-btn" title="Open Inventory (E)">🎒 Bag</button>
+        <button id="btn-open-multiplayer" class="top-bar-btn" title="Multiplayer (M)">🌐 Online</button>
+        <button id="btn-open-settings" class="top-bar-btn" title="Settings (Esc)">⚙️ Menu</button>
+      </nav>
+
+      <!-- In-Game Chat Overlay -->
+      <div id="chat-overlay"></div>
+
+      <!-- Inventory & Crafting Modal Overlay -->
+      <div id="inventory-overlay" class="modal-overlay hidden"></div>
+
+      <!-- Multiplayer WebRTC Modal Overlay -->
+      <div id="multiplayer-overlay" class="modal-overlay hidden"></div>
+
+      <!-- Settings & World Save Modal Overlay -->
+      <div id="settings-overlay" class="modal-overlay hidden"></div>
+    </div>
+
+    <!-- PWA Offline Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.log('ServiceWorker registration error:', err);
+          });
+        });
+      }
+    </script>
+
+    <!-- App Entry Point -->
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
