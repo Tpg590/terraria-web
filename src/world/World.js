@@ -6,6 +6,7 @@ import { TILE_SIZE, TILES, TILE_PROPERTIES, DAY_CYCLE_LENGTH } from '../core/Con
 import { TileRenderer } from './Tile.js';
 import { LightingEngine } from './Lighting.js';
 import { soundEngine } from '../core/SoundEngine.js';
+import { spriteLoader } from '../core/SpriteLoader.js';
 
 export class World {
   constructor(game, width, height, seed) {
@@ -257,38 +258,52 @@ export class World {
       const sunX = sunRatio * screenW;
       const sunY = screenH * 0.6 - Math.sin(sunRatio * Math.PI) * (screenH * 0.45);
 
-      // Sun glow
-      const sunGlow = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 40);
-      sunGlow.addColorStop(0, 'rgba(255, 245, 160, 0.9)');
-      sunGlow.addColorStop(0.5, 'rgba(255, 200, 50, 0.4)');
-      sunGlow.addColorStop(1, 'rgba(255, 180, 0, 0)');
-      ctx.fillStyle = sunGlow;
-      ctx.beginPath();
-      ctx.arc(sunX, sunY, 40, 0, Math.PI * 2);
-      ctx.fill();
+      const sunImg = spriteLoader.get('/assets/terraria/Sun.png');
+      if (sunImg) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(sunImg, sunX - 28, sunY - 28, 56, 56);
+        ctx.restore();
+      } else {
+        // Sun glow fallback
+        const sunGlow = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 40);
+        sunGlow.addColorStop(0, 'rgba(255, 245, 160, 0.9)');
+        sunGlow.addColorStop(0.5, 'rgba(255, 200, 50, 0.4)');
+        sunGlow.addColorStop(1, 'rgba(255, 180, 0, 0)');
+        ctx.fillStyle = sunGlow;
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, 40, 0, Math.PI * 2);
+        ctx.fill();
 
-      // Sun body
-      ctx.fillStyle = '#fff4a3';
-      ctx.beginPath();
-      ctx.arc(sunX, sunY, 18, 0, Math.PI * 2);
-      ctx.fill();
+        ctx.fillStyle = '#fff4a3';
+        ctx.beginPath();
+        ctx.arc(sunX, sunY, 18, 0, Math.PI * 2);
+        ctx.fill();
+      }
     } else {
       // Moon
       let moonRatio = t > 0.8 ? (t - 0.8) / 0.4 : (t + 0.2) / 0.4;
       const moonX = moonRatio * screenW;
       const moonY = screenH * 0.6 - Math.sin(moonRatio * Math.PI) * (screenH * 0.45);
 
-      // Moon glow
-      ctx.fillStyle = 'rgba(220, 235, 255, 0.25)';
-      ctx.beginPath();
-      ctx.arc(moonX, moonY, 32, 0, Math.PI * 2);
-      ctx.fill();
+      const moonImg = spriteLoader.get('/assets/terraria/Moon.png');
+      if (moonImg) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(moonImg, moonX - 22, moonY - 22, 44, 44);
+        ctx.restore();
+      } else {
+        // Moon glow fallback
+        ctx.fillStyle = 'rgba(220, 235, 255, 0.25)';
+        ctx.beginPath();
+        ctx.arc(moonX, moonY, 32, 0, Math.PI * 2);
+        ctx.fill();
 
-      // Moon body
-      ctx.fillStyle = '#e8f0fe';
-      ctx.beginPath();
-      ctx.arc(moonX, moonY, 16, 0, Math.PI * 2);
-      ctx.fill();
+        ctx.fillStyle = '#e8f0fe';
+        ctx.beginPath();
+        ctx.arc(moonX, moonY, 16, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     // Clouds

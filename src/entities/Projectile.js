@@ -4,6 +4,7 @@
 
 import { TILE_SIZE, TILE_PROPERTIES } from '../core/Constants.js';
 import { Particle } from './Particle.js';
+import { spriteLoader } from '../core/SpriteLoader.js';
 
 export class Projectile {
   constructor(x, y, vx, vy, type = 'arrow', damage = 10, knockback = 3, friendly = true) {
@@ -104,19 +105,22 @@ export class Projectile {
       ctx.translate(px, py);
       ctx.rotate(angle);
 
-      // Wooden shaft
-      ctx.fillStyle = '#8b5a2b';
-      ctx.fillRect(-10, -1, 14, 2);
-      // Arrowhead
-      ctx.fillStyle = '#9e9e9e';
-      ctx.beginPath();
-      ctx.moveTo(4, -3);
-      ctx.lineTo(8, 0);
-      ctx.lineTo(4, 3);
-      ctx.fill();
-      // Feathers
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(-10, -2, 3, 4);
+      const arrowImg = spriteLoader.get('/assets/terraria/Projectile_1.png');
+      if (arrowImg) {
+        ctx.drawImage(arrowImg, -14, -4, 28, 8);
+      } else {
+        // Fallback
+        ctx.fillStyle = '#8b5a2b';
+        ctx.fillRect(-10, -1, 14, 2);
+        ctx.fillStyle = '#9e9e9e';
+        ctx.beginPath();
+        ctx.moveTo(4, -3);
+        ctx.lineTo(8, 0);
+        ctx.lineTo(4, 3);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-10, -2, 3, 4);
+      }
 
       ctx.restore();
     } else if (this.type === 'magic') {
@@ -135,10 +139,15 @@ export class Projectile {
     } else if (this.type === 'star') {
       // Starfury falling star
       ctx.save();
-      ctx.fillStyle = '#ffd700';
-      ctx.beginPath();
-      ctx.arc(px, py, 6, 0, Math.PI * 2);
-      ctx.fill();
+      const starImg = spriteLoader.get('/assets/terraria/Projectile_12.png');
+      if (starImg) {
+        ctx.drawImage(starImg, px - 10, py - 10, 20, 20);
+      } else {
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        ctx.arc(px, py, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
       ctx.restore();
     }
   }

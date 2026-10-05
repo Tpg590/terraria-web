@@ -6,6 +6,7 @@
 import { TILE_SIZE, TILE_PROPERTIES } from '../core/Constants.js';
 import { DamageText, Particle } from './Particle.js';
 import { soundEngine } from '../core/SoundEngine.js';
+import { spriteLoader } from '../core/SpriteLoader.js';
 
 export class Enemy {
   constructor(x, y, type = 'green_slime') {
@@ -389,7 +390,21 @@ export class Enemy {
     }
 
     if (this.type === 'green_slime' || this.type === 'blue_slime') {
-      // Slime rendering: translucent body with inner nucleus
+      const slimeImg = spriteLoader.get('/assets/terraria/NPC_1.png');
+      if (slimeImg) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        if (this.type === 'green_slime') {
+          ctx.filter = 'hue-rotate(95deg)';
+        }
+        const frame = this.grounded ? 0 : 1;
+        const frameH = slimeImg.height / 2;
+        ctx.drawImage(slimeImg, 0, frame * frameH, slimeImg.width, frameH, px, py, this.width, this.height);
+        ctx.restore();
+        return;
+      }
+
+      // Fallback
       ctx.fillStyle = this.color;
       ctx.beginPath();
       ctx.arc(px + this.width / 2, py + this.height / 2, this.width / 2, Math.PI, 0);
@@ -397,108 +412,82 @@ export class Enemy {
       ctx.lineTo(px, py + this.height);
       ctx.closePath();
       ctx.fill();
-
-      // Slime inner core
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.beginPath();
-      ctx.arc(px + this.width / 2 - 2, py + this.height / 2 - 2, 4, 0, Math.PI * 2);
-      ctx.fill();
     } else if (this.type === 'zombie') {
-      // Zombie Body
-      ctx.fillStyle = '#2e7d32'; // Green head
-      ctx.fillRect(px + 4, py, 12, 12);
-      // Eyes (white with black pupil)
-      ctx.fillStyle = '#ffffff';
-      const eyeX = this.facing > 0 ? px + 11 : px + 5;
-      ctx.fillRect(eyeX, py + 4, 3, 3);
-      ctx.fillStyle = '#ff0000';
-      ctx.fillRect(eyeX + (this.facing > 0 ? 1 : 0), py + 5, 2, 2);
+      const zombieImg = spriteLoader.get('/assets/terraria/NPC_3.png');
+      if (zombieImg) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        const totalFrames = 3;
+        const frameH = zombieImg.height / totalFrames;
+        const frame = Math.abs(this.vx) > 0.1 ? Math.floor(Date.now() / 180) % totalFrames : 0;
 
-      // Tattered Blue Shirt
+        if (this.facing < 0) {
+          ctx.translate(px + this.width, py);
+          ctx.scale(-1, 1);
+          ctx.drawImage(zombieImg, 0, frame * frameH, zombieImg.width, frameH, -6, -6, this.width + 12, this.height + 6);
+        } else {
+          ctx.drawImage(zombieImg, 0, frame * frameH, zombieImg.width, frameH, px - 6, py - 6, this.width + 12, this.height + 6);
+        }
+        ctx.restore();
+        return;
+      }
+
+      // Fallback
+      ctx.fillStyle = '#2e7d32';
+      ctx.fillRect(px + 4, py, 12, 12);
       ctx.fillStyle = '#1565c0';
       ctx.fillRect(px + 3, py + 12, 14, 14);
-
-      // Outstretched arms
-      ctx.fillStyle = '#2e7d32';
-      const armX = this.facing > 0 ? px + 12 : px - 4;
-      ctx.fillRect(armX, py + 14, 10, 4);
-
-      // Pants & Legs
       ctx.fillStyle = '#424242';
       ctx.fillRect(px + 4, py + 26, 5, 12);
       ctx.fillRect(px + 11, py + 26, 5, 12);
     } else if (this.type === 'demon_eye') {
-      // Demon eye (white eyeball with red veins and pupil)
+      const eyeImg = spriteLoader.get('/assets/terraria/NPC_2.png');
+      if (eyeImg) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        const totalFrames = 2;
+        const frameH = eyeImg.height / totalFrames;
+        const frame = Math.floor(Date.now() / 160) % totalFrames;
+
+        if (this.facing < 0) {
+          ctx.translate(px + this.width, py);
+          ctx.scale(-1, 1);
+          ctx.drawImage(eyeImg, 0, frame * frameH, eyeImg.width, frameH, 0, 0, this.width, this.height);
+        } else {
+          ctx.drawImage(eyeImg, 0, frame * frameH, eyeImg.width, frameH, px, py, this.width, this.height);
+        }
+        ctx.restore();
+        return;
+      }
+
+      // Fallback
       ctx.fillStyle = '#f5f5f5';
       ctx.beginPath();
       ctx.ellipse(px + 14, py + 12, 14, 12, 0, 0, Math.PI * 2);
       ctx.fill();
-
-      // Veins behind eye
-      ctx.fillStyle = '#b71c1c';
-      ctx.fillRect(px - (this.facing > 0 ? 3 : -18), py + 8, 8, 4);
-
-      // Iris & Pupil looking towards player
-      ctx.fillStyle = '#1565c0';
-      const ppx = px + (this.facing > 0 ? 18 : 6);
-      ctx.beginPath();
-      ctx.arc(ppx, py + 12, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#000000';
-      ctx.beginPath();
-      ctx.arc(ppx, py + 12, 3, 0, Math.PI * 2);
-      ctx.fill();
     } else if (this.type === 'eye_of_cthulhu') {
-      // Boss Rendering
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.ellipse(px + 32, py + 32, 32, 28, 0, 0, Math.PI * 2);
-      ctx.fill();
+      const bossImg = spriteLoader.get('/assets/terraria/NPC_4.png');
+      if (bossImg) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        const frameOffset = this.phase === 2 ? 3 : 0;
+        const frame = frameOffset + (Math.floor(Date.now() / 120) % 3);
+        const frameH = bossImg.height / 6;
 
-      // Red veins
-      ctx.strokeStyle = '#b71c1c';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(px + 32, py + 8);
-      ctx.lineTo(px + 20, py + 20);
-      ctx.moveTo(px + 32, py + 56);
-      ctx.lineTo(px + 44, py + 40);
-      ctx.stroke();
-
-      if (this.phase === 1) {
-        // Iris & Pupil
-        ctx.fillStyle = '#1976d2';
-        const pupX = px + (this.facing > 0 ? 44 : 20);
-        ctx.beginPath();
-        ctx.arc(pupX, py + 32, 14, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(pupX, py + 32, 7, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
-        // Phase 2: Giant Terrifying Mouth with sharp teeth!
-        ctx.fillStyle = '#5c0000';
-        const mX = px + (this.facing > 0 ? 36 : 12);
-        ctx.beginPath();
-        ctx.ellipse(mX, py + 32, 18, 14, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Sharp teeth
-        ctx.fillStyle = '#ffffff';
-        for (let i = -2; i <= 2; i++) {
-          ctx.beginPath();
-          ctx.moveTo(mX + i * 5, py + 22);
-          ctx.lineTo(mX + i * 5 + 3, py + 22);
-          ctx.lineTo(mX + i * 5 + 1.5, py + 28);
-          ctx.fill();
-
-          ctx.beginPath();
-          ctx.moveTo(mX + i * 5, py + 42);
-          ctx.lineTo(mX + i * 5 + 3, py + 42);
-          ctx.lineTo(mX + i * 5 + 1.5, py + 36);
-          ctx.fill();
+        if (this.facing < 0) {
+          ctx.translate(px + this.width, py);
+          ctx.scale(-1, 1);
+          ctx.drawImage(bossImg, 0, frame * frameH, bossImg.width, frameH, 0, 0, this.width, this.height);
+        } else {
+          ctx.drawImage(bossImg, 0, frame * frameH, bossImg.width, frameH, px, py, this.width, this.height);
         }
+        ctx.restore();
+      } else {
+        // Fallback
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.ellipse(px + 32, py + 32, 32, 28, 0, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
 

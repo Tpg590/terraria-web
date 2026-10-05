@@ -4,6 +4,7 @@
 
 import { ITEMS } from '../core/Constants.js';
 import { ItemSprites } from '../core/ItemSprites.js';
+import { spriteLoader } from '../core/SpriteLoader.js';
 
 export class HUD {
   constructor(game) {
@@ -80,46 +81,67 @@ export class HUD {
     ctx.font = 'bold 12px "Courier New", monospace';
     ctx.fillText(`Life: ${player.hp} / ${player.maxHp}`, heartsStartX, heartsStartY - 4);
 
+    const heartImg = spriteLoader.get('/assets/terraria/Heart.png');
+
     for (let h = 0; h < heartsCount; h++) {
       const hx = heartsStartX + h * 22;
       const hy = heartsStartY;
       const heartHp = (h + 1) * 20;
 
-      // Heart outline
-      ctx.fillStyle = '#3e1010';
-      this.drawHeart(ctx, hx, hy, 18);
-
-      if (player.hp >= heartHp) {
-        // Full red heart
-        ctx.fillStyle = '#e53935';
-        this.drawHeart(ctx, hx, hy, 16);
-        ctx.fillStyle = '#ff8a80';
-        ctx.fillRect(hx + 3, hy + 2, 3, 3);
-      } else if (player.hp > heartHp - 20) {
-        // Partial heart
-        const ratio = (player.hp - (heartHp - 20)) / 20;
-        ctx.fillStyle = '#e53935';
-        this.drawHeart(ctx, hx, hy, 16 * ratio);
+      if (heartImg) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        if (player.hp >= heartHp) {
+          // Full Heart
+          ctx.drawImage(heartImg, hx, hy, 20, 20);
+        } else if (player.hp > heartHp - 20) {
+          // Partial Heart
+          const ratio = (player.hp - (heartHp - 20)) / 20;
+          ctx.drawImage(heartImg, 0, 0, heartImg.width * ratio, heartImg.height, hx, hy, 20 * ratio, 20);
+        } else {
+          // Empty heart silhouette
+          ctx.globalAlpha = 0.3;
+          ctx.drawImage(heartImg, hx, hy, 20, 20);
+        }
+        ctx.restore();
+      } else {
+        // Fallback procedural heart
+        ctx.fillStyle = '#3e1010';
+        this.drawHeart(ctx, hx, hy, 18);
+        if (player.hp >= heartHp) {
+          ctx.fillStyle = '#e53935';
+          this.drawHeart(ctx, hx, hy, 16);
+        }
       }
     }
 
     // 3. Mana Stars (Far Right Edge)
-    const manaStartX = screenW - 24;
+    const manaStartX = screenW - 26;
     const manaStartY = 42;
     const starsCount = Math.ceil(player.maxMana / 10); // 5 stars for 50 Mana
+    const manaImg = spriteLoader.get('/assets/terraria/Mana.png');
 
     for (let s = 0; s < starsCount; s++) {
       const sy = manaStartY + s * 22;
       const starMana = (s + 1) * 10;
 
-      ctx.fillStyle = '#0d47a1';
-      this.drawStar(ctx, manaStartX, sy, 8);
-
-      if (player.mana >= starMana) {
-        ctx.fillStyle = '#29b6f6';
-        this.drawStar(ctx, manaStartX, sy, 7);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(manaStartX - 1, sy - 1, 2, 2);
+      if (manaImg) {
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        if (player.mana >= starMana) {
+          ctx.drawImage(manaImg, manaStartX, sy, 18, 18);
+        } else {
+          ctx.globalAlpha = 0.25;
+          ctx.drawImage(manaImg, manaStartX, sy, 18, 18);
+        }
+        ctx.restore();
+      } else {
+        ctx.fillStyle = '#0d47a1';
+        this.drawStar(ctx, manaStartX + 8, sy + 8, 8);
+        if (player.mana >= starMana) {
+          ctx.fillStyle = '#29b6f6';
+          this.drawStar(ctx, manaStartX + 8, sy + 8, 7);
+        }
       }
     }
 
