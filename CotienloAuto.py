@@ -1,12 +1,7 @@
 """
 ====================================================================
  TOOL AUTO CÀY CẢNH GIỚI LƯU PHÁI - GAME CỔ TIÊN LỘ (cotienlo.com)
- SÂN TẬP HỌC ĐƯỜNG
-====================================================================
-Bản tối ưu sạch sẽ (Clean Version):
-- Sử dụng API chính thức của Microsoft Windows (ctypes.windll.user32)
-- Không dùng hook bàn phím ngầm (loại bỏ hoàn toàn thư viện keyboard/keylogger)
-- Đảm bảo 100% an toàn, không bị Antivirus / Zalo / Gmail báo nhầm là Trojan
+ SÂN TẬP HỌC ĐƯỜNG - BẢN FIX CHUẨN XÁC 100%
 ====================================================================
 """
 
@@ -22,21 +17,22 @@ import cv2
 import numpy as np
 from PIL import ImageGrab
 
-# Bảng mã phím ảo Windows Virtual-Key Codes chuẩn
+# Bảng mã phím ảo Windows
 VK_MAP = {
     '1': 0x31, '2': 0x32, '3': 0x33, '4': 0x34, '5': 0x35,
     'f': 0x46, 'x': 0x58, 'q': 0x51, 'e': 0x45, 'r': 0x52,
     'space': 0x20
 }
 
-# Hằng số Windows API
 VK_F9 = 0x78
 VK_F10 = 0x79
 WM_HOTKEY = 0x0312
 WM_QUIT = 0x0012
 
+SCALES_CENTER = (0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.25)
+
 def send_key_press(key_char, hold_time=0.04):
-    """Gửi tín hiệu nhấn phím qua Windows API chuẩn (keybd_event)."""
+    """Gửi phím qua Windows API chuẩn."""
     key_char = str(key_char).lower().strip()
     vk = VK_MAP.get(key_char, None)
     if vk is None:
@@ -47,18 +43,12 @@ def send_key_press(key_char, hold_time=0.04):
             
     user32 = ctypes.windll.user32
     scan_code = user32.MapVirtualKeyW(vk, 0)
-    # Nhấn xuống (Key Down)
     user32.keybd_event(vk, scan_code, 0, 0)
     time.sleep(hold_time)
-    # Nhả phím (Key Up: KEYEVENTF_KEYUP = 0x0002)
     user32.keybd_event(vk, scan_code, 0x0002, 0)
 
 
 class WindowsGlobalHotkeys(threading.Thread):
-    """
-    Đăng ký phím nóng toàn hệ thống qua Windows RegisterHotKey.
-    Đây là API hợp pháp của hệ điều hành, an toàn 100%, không bị diệt virus chặn.
-    """
     def __init__(self, on_f9, on_f10):
         super().__init__(daemon=True)
         self.on_f9 = on_f9
@@ -71,7 +61,6 @@ class WindowsGlobalHotkeys(threading.Thread):
         kernel32 = ctypes.windll.kernel32
         self.thread_id = kernel32.GetCurrentThreadId()
 
-        # Đăng ký F9 (ID 1) và F10 (ID 2)
         user32.RegisterHotKey(None, 1, 0, VK_F9)
         user32.RegisterHotKey(None, 2, 0, VK_F10)
 
@@ -110,26 +99,22 @@ class CotienloBot:
         
         # Cấu hình mặc định
         self.skills = ['1', '2', '3']
-        self.spam_delay_ms = 150       # ms giữa mỗi lần bấm skill
-        self.countdown_sec = 3.5       # Thời gian chờ đếm ngược trước trận
-        self.post_victory_wait_sec = 2.5 # Thời gian chờ hết giao tranh trước khi bấm X
-        self.match_threshold = 0.75    # Ngưỡng nhận diện OpenCV
+        self.spam_delay_ms = 150
+        self.countdown_sec = 3.5
+        self.post_victory_wait_sec = 2.5
         
-        # Đường dẫn assets
         self.base_dir = os.path.dirname(os.path.abspath(__file__))
         self.assets_dir = os.path.join(self.base_dir, 'assets')
         
-        # Load templates
+        # Load các mẫu chuẩn gốc (không dùng mẫu vụn để tránh nhận diện nhầm)
         self.tpl_f_key = self._load_template('f_key.png')
         self.tpl_f_prompt = self._load_template('f_prompt.png')
-        self.tpl_victory = self._load_template('victory_text.png')
-        self.tpl_countdown = self._load_template('vong_text.png')
+        self.tpl_victory_text = self._load_template('victory_text.png')
 
     def _load_template(self, filename):
         path = os.path.join(self.assets_dir, filename)
         if os.path.exists(path):
-            img = cv2.imread(path)
-            return img
+            return cv2.imread(path)
         return None
 
     def log(self, msg):
@@ -149,7 +134,6 @@ class CotienloBot:
             self.count_callback(self.matches_count)
 
     def capture_screen(self):
-        """Chụp màn hình trả về ảnh BGR OpenCV."""
         try:
             screenshot = ImageGrab.grab()
             img_np = np.array(screenshot)
@@ -160,15 +144,12 @@ class CotienloBot:
             self.log(f"Lỗi chụp màn hình: {e}")
             return None
 
-    def find_template(self, screen, template, scales=(0.8, 0.9, 1.0, 1.1, 1.25), threshold=None):
-        """Khớp mẫu đa tỉ lệ (Multi-scale template matching)."""
-        if template is None or screen is None:
+    def find_template(self, image, template, scales=SCALES_CENTER, threshold=0.75):
+        """Khớp mẫu đa tỉ lệ với ngưỡng an toàn cao."""
+        if template is None or image is None:
             return False, 0.0, None
             
-        if threshold is None:
-            threshold = self.match_threshold
-            
-        scr_gray = cv2.cvtColor(screen, cv2.COLOR_BGR2GRAY)
+        scr_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         tpl_gray = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
         
         best_val = -1.0
@@ -191,6 +172,33 @@ class CotienloBot:
                 best_loc = max_loc
                 
         return (best_val >= threshold), best_val, best_loc
+
+    def check_f_in_center(self, screen):
+        """
+        Kiểm tra nút [ F ] ở KHU VỰC TRUNG TÂM (quanh nhân vật trong lôi đài).
+        Tránh hoàn toàn việc quét nhầm chữ F trong bảng nhiệm vụ bên trái.
+        """
+        if screen is None or self.tpl_f_key is None:
+            return False, 0.0, None
+            
+        h, w = screen.shape[:2]
+        # Cắt lấy vùng trung tâm 40% (x: 30%..70%, y: 30%..70%)
+        center_roi = screen[int(h * 0.30):int(h * 0.70), int(w * 0.30):int(w * 0.70)]
+        found, val, loc = self.find_template(center_roi, self.tpl_f_key, threshold=0.80)
+        return found, val, loc
+
+    def check_victory_top(self, screen):
+        """
+        Kiểm tra thông báo chiến thắng ở VÙNG TRÊN CÙNG GIỮA MÀN HÌNH (y < 25%, x: 20%..80%).
+        Tránh hoàn toàn quét nhầm vào bảng nhiệm vụ bên trái hay chat bên dưới.
+        """
+        if screen is None or self.tpl_victory_text is None:
+            return False, 0.0, None
+            
+        h, w = screen.shape[:2]
+        top_roi = screen[:int(h * 0.25), int(w * 0.20):int(w * 0.80)]
+        found, val, loc = self.find_template(top_roi, self.tpl_victory_text, threshold=0.70)
+        return found, val, loc
 
     def start(self):
         if self.is_running:
@@ -233,18 +241,14 @@ class CotienloBot:
             # BƯỚC 1: TÌM VÀ BẤM NÚT [ F ] ĐỂ BẮT ĐẦU TRẬN ĐẤU
             # ==========================================================
             self.set_status("Đang tìm nút [ F ] bắt đầu...", "#0066cc")
-            found_f = False
             
             while self.is_running and not self.is_paused:
                 screen = self.capture_screen()
                 if screen is not None:
-                    has_f_key, val_k, _ = self.find_template(screen, self.tpl_f_key, threshold=0.75)
-                    has_f_prompt, val_p, _ = self.find_template(screen, self.tpl_f_prompt, threshold=0.72)
-                    
-                    if has_f_key or has_f_prompt:
-                        found_f = True
-                        val = max(val_k, val_p)
-                        self.log(f"Phát hiện nút [ F ] (độ khớp: {val:.2f}) -> Bấm F bắt đầu!")
+                    # Kiểm tra nút F ở khu vực nhân vật
+                    has_f, val_f, _ = self.check_f_in_center(screen)
+                    if has_f:
+                        self.log(f"Phát hiện nút [ F ] trên đầu nhân vật (khớp: {val_f:.2f}) -> Bấm F bắt đầu!")
                         send_key_press('f')
                         time.sleep(0.6)
                         break
@@ -255,7 +259,7 @@ class CotienloBot:
                 break
 
             # ==========================================================
-            # BƯỚC 2: CHỜ ĐẾM NGƯỢC (Ra khỏi vòng là thua 3, 2, 1, 0)
+            # BƯỚC 2: CHỜ ĐẾM NGƯỢC (3.5s)
             # ==========================================================
             self.set_status(f"Đang chờ đếm ngược ({self.countdown_sec}s)...", "#cc6600")
             self.log(f"Đang đếm ngược {self.countdown_sec} giây trước khi gây sát thương...")
@@ -277,6 +281,7 @@ class CotienloBot:
             
             fight_start_time = time.time()
             victory_detected = False
+            f_already_ready = False
             skill_idx = 0
             
             while self.is_running and not self.is_paused:
@@ -287,27 +292,49 @@ class CotienloBot:
                 
                 time.sleep(self.spam_delay_ms / 1000.0)
 
+                # Mỗi 2 chiêu quét kiểm tra kết quả
                 if skill_idx % 2 == 0:
                     screen = self.capture_screen()
                     if screen is not None:
-                        is_vic, v_val, _ = self.find_template(screen, self.tpl_victory, threshold=0.75)
+                        # Cách 1: Quét thông báo chiến thắng ở phía trên cùng
+                        is_vic, v_val, _ = self.check_victory_top(screen)
                         if is_vic:
                             victory_detected = True
                             duration = time.time() - fight_start_time
-                            self.log(f"★ CHIẾN THẮNG! (khớp {v_val:.2f}, thời gian đánh: {duration:.1f}s)")
+                            self.log(f"★ CHIẾN THẮNG! (Thông báo thắng khớp {v_val:.2f}, đánh trong: {duration:.1f}s)")
                             self.update_count()
                             break
 
+                        # Cách 2 (Cực chuẩn cho máy bạn): Sau khi đánh ít nhất 3 giây,
+                        # nếu bạn tập ĐÃ RA KHỎI VÒNG thì nút [ F ] sẽ hiện ngay trên đầu nhân vật!
+                        if time.time() - fight_start_time >= 3.0:
+                            has_f_now, val_f_now, _ = self.check_f_in_center(screen)
+                            if has_f_now:
+                                victory_detected = True
+                                f_already_ready = True
+                                duration = time.time() - fight_start_time
+                                self.log(f"★ CHIẾN THẮNG! (Bạn tập đã ra vòng, nút [ F ] hiện lại khớp {val_f_now:.2f}, đánh: {duration:.1f}s)")
+                                self.update_count()
+                                break
+
+                # Timeout 90 giây
                 if time.time() - fight_start_time > 90:
-                    self.log("Cảnh báo: Trận đấu kéo dài hơn 90s, tự động chuyển bước hồi phục.")
+                    self.log("Trận đấu kéo dài hơn 90s, tự động chuyển bước phục hồi.")
                     break
 
             if not self.is_running:
                 break
 
             # ==========================================================
-            # BƯỚC 4: CHỜ HẾT TRẠNG THÁI GIAO TRANH & BẤM X ĐIỀU TỨC
+            # BƯỚC 4: XỬ LÝ SAU TRẬN ĐẤU & CHUẨN BỊ TRẬN TIẾP THEO
             # ==========================================================
+            # Nếu nút F đã hiện sẵn trên nhân vật (bạn tập ra khỏi vòng), chuẩn bị trận mới luôn!
+            if f_already_ready:
+                self.log("Nút [ F ] đã xuất hiện sẵn, chuẩn bị bắt đầu trận mới ngay...")
+                time.sleep(0.5)
+                continue
+
+            # Nếu chưa có nút F, đợi thoát giao tranh rồi bấm X điều tức
             self.set_status(f"Thắng! Đợi hết giao tranh ({self.post_victory_wait_sec}s)...", "#6600cc")
             self.log(f"Đợi {self.post_victory_wait_sec}s để thoát trạng thái giao tranh hoàn toàn...")
             time.sleep(self.post_victory_wait_sec)
@@ -317,14 +344,15 @@ class CotienloBot:
             send_key_press('x')
             time.sleep(1.0)
 
+            # Đợi nút F xuất hiện lại sau khi ngồi điều tức
             max_x_retry = 4
             for retry in range(max_x_retry):
                 if not self.is_running or self.is_paused:
                     break
                 screen = self.capture_screen()
-                has_f, _, _ = self.find_template(screen, self.tpl_f_key, threshold=0.75)
+                has_f, val_f, _ = self.check_f_in_center(screen)
                 if has_f:
-                    self.log("Đã phát hiện nút [ F ] sau khi điều tức!")
+                    self.log(f"Đã phát hiện nút [ F ] sau khi điều tức (khớp: {val_f:.2f})!")
                     break
                 else:
                     self.log(f"Chưa thấy [ F ], thử bấm lại [ X ] lần {retry + 1}...")
@@ -358,7 +386,6 @@ class CotienloApp:
 
         self._build_ui()
 
-        # Đăng ký phím nóng toàn cục an toàn
         self.hotkeys = WindowsGlobalHotkeys(
             on_f9=self._hotkey_f9,
             on_f10=self._hotkey_f10
@@ -559,18 +586,15 @@ class CotienloApp:
             messagebox.showerror("Lỗi", "Không thể chụp ảnh màn hình!")
             return
 
-        has_f_key, val_k, _ = self.bot.find_template(screen, self.bot.tpl_f_key, threshold=0.70)
-        has_f_prompt, val_p, _ = self.bot.find_template(screen, self.bot.tpl_f_prompt, threshold=0.70)
-        has_vic, val_v, _ = self.bot.find_template(screen, self.bot.tpl_victory, threshold=0.70)
-        has_cd, val_c, _ = self.bot.find_template(screen, self.bot.tpl_countdown, threshold=0.70)
+        has_f, val_f, _ = self.bot.check_f_in_center(screen)
+        has_vic, val_v, _ = self.bot.check_victory_top(screen)
 
         msg = (
             f"KẾT QUẢ QUÉT MÀN HÌNH HIỆN TẠI:\n\n"
-            f"1. Phím [ F ] : {'THẤY' if has_f_key else 'Không'} (độ khớp: {val_k:.2f})\n"
-            f"2. Nút F đầy đủ: {'THẤY' if has_f_prompt else 'Không'} (độ khớp: {val_p:.2f})\n"
-            f"3. Đếm ngược (Ra khỏi vòng): {'THẤY' if has_cd else 'Không'} (độ khớp: {val_c:.2f})\n"
-            f"4. Thông báo chiến thắng: {'THẤY' if has_vic else 'Không'} (độ khớp: {val_v:.2f})\n\n"
-            f"(Ngưỡng chuẩn để kích hoạt là >= 0.75)"
+            f"1. Phím [ F ] (ở trung tâm nhân vật) : {'THẤY' if has_f else 'Không'} (độ khớp: {val_f:.2f})\n"
+            f"2. Thông báo chiến thắng (ở trên cùng): {'THẤY' if has_vic else 'Không'} (độ khớp: {val_v:.2f})\n\n"
+            f"(Nếu đang đánh nhau: Cả hai phải là 'Không' -> Đúng chuẩn)\n"
+            f"(Nếu vừa thắng / sẵn sàng: Nút [ F ] phải là 'THẤY' -> Đúng chuẩn)"
         )
         messagebox.showinfo("Kết quả kiểm tra nhận diện", msg)
 
@@ -613,4 +637,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
