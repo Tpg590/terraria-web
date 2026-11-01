@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cài đặt Bookmarklet Auto Cổ Tiên Lộ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1410;
+            color: #f2ead3;
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 24px;
+            line-height: 1.6;
+            border: 2px solid #d9b45a;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+        }
+        h1, h2 {
+            color: #ffdb7d;
+            text-align: center;
+        }
+        .btn-drag {
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+            background: linear-gradient(135deg, #d9b45a, #b38628);
+            color: #1a1410;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 14px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(217, 180, 90, 0.4);
+            cursor: move;
+            border: 2px solid #fff;
+        }
+        .btn-copy {
+            background: #28a745;
+            color: white;
+            font-weight: bold;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: block;
+            margin: 15px auto;
+        }
+        .btn-copy:hover {
+            background: #218838;
+        }
+        .tip-box {
+            background: rgba(255, 219, 125, 0.1);
+            border-left: 4px solid #ffdb7d;
+            padding: 12px 16px;
+            margin: 16px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            background: #281d16;
+            color: #9fd;
+            border: 1px solid #d9b45a;
+            border-radius: 6px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 11px;
+            box-sizing: border-box;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>⚔️ CÀI ĐẶT AUTO CỔ TIÊN LỘ</h1>
+    <p style="text-align:center; color:#ccc;">Dành cho trình duyệt Edge, Chrome trên PC hoặc Safari, Chrome trên Điện thoại</p>
+
+    <div class="tip-box">
+        <strong>🔥 CÁCH 1 (Cực nhanh trên PC / Edge / Chrome):</strong><br>
+        Bật thanh dấu trang (nhấn <code>Ctrl + Shift + B</code>), sau đó dùng chuột <strong>KÉO THẢ nút màu vàng bên dưới</strong> trực tiếp lên thanh Dấu trang (Favourites bar):
+    </div>
+
+    <!-- Nút kéo thả Bookmarklet -->
+    <a class="btn-drag" id="bookmarklet-link" href="#" title="Kéo nút này thả vào thanh Bookmarks của trình duyệt">
+        👉 KÉO NÚT NÀY THẢ VÀO THANH BOOKMARKS
+    </a>
+
+    <hr style="border-color: rgba(217,180,90,0.3); margin: 30px 0;">
+
+    <div class="tip-box">
+        <strong>📱 CÁCH 2 (Dành cho điện thoại hoặc tạo thủ công):</strong><br>
+        Bấm nút bên dưới để tự động copy chuẩn xác mã 1 dòng (bắt đầu bằng <code>javascript:</code> và không bị ký tự xuống dòng làm lỗi ô URL):
+    </div>
+
+    <button class="btn-copy" onclick="copyCode()">📋 BẤM ĐỂ COPY MÃ BOOKMARKLET (1 DÒNG CHUẨN)</button>
+    <div id="copy-status" style="text-align: center; color: #5fd47a; font-weight: bold; display: none;">
+        ✅ Đã copy vào bộ nhớ tạm! Bạn có thể dán vào ô URL của Dấu trang và bấm Save ngay!
+    </div>
+
+    <textarea id="bm-text" readonly></textarea>
+
+    <script>
+        fetch('MA_BOOKMARKLET_1_DONG.txt')
+            .then(res => res.text())
+            .then(code => {
+                code = code.trim();
+                document.getElementById('bookmarklet-link').href = code;
+                document.getElementById('bm-text').value = code;
+            })
+            .catch(err => {
+                console.error(err);
+            });
+
+        function copyCode() {
+            var txt = document.getElementById('bm-text');
+            txt.select();
+            txt.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(txt.value).then(function() {
+                var s = document.getElementById('copy-status');
+                s.style.display = 'block';
+                setTimeout(() => s.style.display = 'none', 3000);
+            });
+        }
+    </script>
+</body>
+</html>
+

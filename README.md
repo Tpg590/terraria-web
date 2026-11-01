@@ -1,125 +1,59 @@
-# 🌲 Terraria Web (Online & Offline Sandbox)
+# BỘ TOOL AUTO CÀY CẢNH GIỚI LƯU PHÁI - GAME CỔ TIÊN LỘ (cotienlo.com)
 
-Một phiên bản Terraria 2D Sandbox hoàn chỉnh chạy trên Web, hỗ trợ chơi Online qua WebRTC Peer-to-Peer, hỗ trợ đầy đủ cho **PC** và **Điện thoại** (Mobile Touch Controls), hoạt động **100% Offline (PWA)** và sẵn sàng deploy lên **Vercel** chỉ với 1 cú click!
-
----
-
-## ✨ Tính Năng Nổi Bật
-
-1. **Thế Giới Procedural (Sinh ngẫu nhiên & Khám phá)**:
-   - Bản đồ địa hình đồi cỏ, cây cối, hang động ngầm sâu uốn lượn.
-   - Các tầng địa chất: Bầu trời, Mặt đất, Lòng đất (Dirt / Stone), Tầng hầm sâu (Caverns) và Địa ngục (Underworld).
-   - Quặng phong phú: Than (Coal), Đồng (Copper), Sắt (Iron), Vàng (Gold), Hồng ngọc (Ruby), Lam ngọc (Sapphire).
-   - Ngôi nhà gỗ khởi đầu trên bề mặt với Bàn chế tạo (Work Bench), Cửa và Rương chứa đồ (Chest).
-
-2. **Cơ Chế Khai Thác & Xây Dựng (Terraria authentic)**:
-   - Cuốc (Pickaxe) đào đất, đá, quặng với 4 giai đoạn nứt vỡ (Crack stages).
-   - Rìu (Axe) chặt cây đổ từ trên xuống.
-   - Đặt khối gạch (Dirt, Stone, Wood, Brick, Glass...) và Tường nền (Walls) ở lớp phía sau.
-   - Đuốc (Torch), Lò luyện (Furnace), Đe rèn (Anvil), Cửa gỗ đóng/mở.
-
-3. **Hệ Thống Ánh Sáng Động 2D (Dynamic 2D Lighting)**:
-   - Chu kỳ Ngày & Đêm (Day / Night cycle) mượt mà: Bình minh, Trưa nắng, Hoàng hôn và Đêm tối đầy sao.
-   - Ánh sáng khuếch tán lan tỏa qua không khí, bị cản bởi đất đá. Đuốc và lò lửa tỏa ánh sáng vàng ấm áp trong hang tối.
-
-4. **Chiến Đấu & Quái Vật (Enemies & Bosses)**:
-   - **Ban ngày**: Slime xanh lá và Slime xanh dương nhảy tưng tưng tiếp cận người chơi.
-   - **Ban đêm**: Zombie lang thang tấn công và Mắt quỷ (Demon Eye) bay lượn từ trên trời sà xuống.
-   - **Mini-Boss Eye of Cthulhu**: Triệu hồi bằng vật phẩm *Suspicious Looking Eye*, gầm thét, lao tới ở tốc độ cao và chuyển dạng mở mồm răng sắc nhọn khi dưới 50% HP!
-   - Số sát thương nảy lên (Floating combat text), hiệu ứng văng máu/hạt khi trúng đòn.
-
-5. **Âm Thanh Tự Tổng Hợp (Web Audio API Synthesizer)**:
-   - 100% Offline, không phụ thuộc file âm thanh ngoài.
-   - Âm thanh đào đất, tiếng choang cuốc đập đá, chặt gỗ, chém kiếm, bắn cung, cast phép, tiếng rơi đau và nhạc nền Chiptune 8-bit hoài niệm.
-
-6. **Chơi Online Nhiều Người (P2P WebRTC Multiplayer)**:
-   - Không cần thuê server! Sử dụng công nghệ WebRTC Peer-to-Peer.
-   - Người Host tạo phòng nhận mã phòng (ví dụ `TR-892A`) hoặc link chia sẻ.
-   - Bạn bè nhập mã trên PC hoặc Điện thoại để vào chung thế giới, cùng đào, xây dựng và đánh boss!
-   - Khung chat trực tiếp trong game.
-
-7. **Chơi Offline 100% & Lưu Trữ (Progressive Web App - PWA)**:
-   - Service Worker lưu bộ nhớ đệm (Cache) toàn bộ game.
-   - Hỗ trợ lưu thế giới vào trình duyệt (`localStorage`), hỗ trợ 3 Slot lưu, tự động lưu (Auto-save) mỗi 45s.
-   - Tính năng **Export file thế giới (.json)** để sao lưu hoặc gửi cho bạn bè và **Import file** để tải lại.
-
-8. **Điều Khiển Thân Thiện Cho Cả PC & Điện Thoại**:
-   - **PC**:
-     - `A` / `D` hoặc `←` / `→`: Di chuyển
-     - `W` / `Space` / `↑`: Nhảy (Hỗ trợ nhảy 2 lần nếu nhặt được *Cloud in a Bottle*)
-     - `S` / `↓`: Rơi xuyên qua cầu thang gỗ (Wooden Platform)
-     - `Chuột Trái`: Đào / Tấn công / Dùng đồ
-     - `Chuột Phải`: Đặt khối / Mở rương / Đóng mở cửa
-     - Phím `1` - `0` hoặc Cuộn chuột: Chọn ô đồ trên Hotbar
-     - `E` hoặc `I`: Mở Túi đồ (Inventory) & Chế tạo (Crafting)
-     - `M`: Mở phòng Online
-     - `Esc`: Menu Cài đặt / Lưu game
-   - **Điện Thoại / Máy Tính Bảng**:
-     - Cần điều khiển ảo (Virtual Joystick) góc trái màn hình.
-     - Nút nhảy to tròn (JUMP) và nút đánh/dùng đồ (USE) ở góc phải.
-     - Chạm trực tiếp vào màn hình để đào hoặc đặt khối (giữ ngón tay để đào liên tục).
-     - Hỗ trợ phóng to / thu nhỏ (Zoom) và nút Bật toàn màn hình (Fullscreen).
+Dành riêng cho khu vực: **Sân tập học đường** (Đấu với bạn tập / người rơm).
+Bao gồm **2 phiên bản**:
+1. 🖥️ **Bản PC (Windows Tool GUI):** Ứng dụng desktop nhận diện hình ảnh OpenCV đa tỉ lệ.
+2. 📱 **Bản Điện Thoại (Mobile Web / Bookmarklet):** Chạy trực tiếp trên trình duyệt điện thoại (iOS / Android), có widget cảm ứng nổi kéo thả thu nhỏ.
 
 ---
 
-## 🚀 Hướng Dẫn Deploy Lên Vercel
-
-### Cách 1: Deploy qua GitHub & Vercel Dashboard (Khuyên dùng)
-
-1. Tạo một repository mới trên GitHub (ví dụ: `terraria-web`).
-2. Mở terminal tại thư mục này và chạy các lệnh:
-   ```bash
-   git init
-   git add .
-   git commit -m "feat: initial Terraria Web release"
-   git branch -M main
-   git remote add origin https://github.com/TÊN_GITHUB_CỦA_BẠN/terraria-web.git
-   git push -u origin main
-   ```
-3. Truy cập [vercel.com](https://vercel.com) và đăng nhập bằng GitHub.
-4. Bấm **"Add New..."** -> **"Project"** -> Chọn repository `terraria-web`.
-5. Vercel sẽ tự động nhận diện **Vite**:
-   - Framework Preset: `Vite`
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-6. Bấm **Deploy**. Sau ~30 giây, bạn sẽ có đường link web miễn phí dạng `https://terraria-web.vercel.app`!
-
-### Cách 2: Deploy trực tiếp bằng Vercel CLI
-
-Nếu bạn đã cài `vercel`:
-```bash
-npm i -g vercel
-vercel
-```
-Làm theo hướng dẫn trên màn hình và trang web sẽ online ngay lập tức!
+## 🎯 QUY TRÌNH HOẠT ĐỘNG CHUẨN
+1. **Bắt đầu trận:** Quét màn hình thấy nút **`[ F ]`** (Đấu thêm một trận / Đấu với bạn tập) ➔ Tự động bấm phím **`F`**.
+2. **Chờ đếm ngược:** Đợi thông báo *"Ra khỏi vòng là thua: 3 ➔ 2 ➔ 1 ➔ 0"* kết thúc (khoảng 3.5 giây) để bắt đầu gây sát thương.
+3. **Chiến đấu (Spam skill):** Tự động spam liên tục các kỹ năng đã chọn (mặc định: phím **1, 2, 3**, có thể chọn thêm **4, Q, E**) theo nhịp cooldown.
+4. **Nhận diện chiến thắng:** Nhận diện thông báo *"Bạn học lùi ra khỏi vòng, nhận thua..."* ➔ Ngay lập tức ngắt spam chiêu và đếm số trận thắng.
+5. **Hồi phục (Điều tức):** Đợi khoảng 2.5 giây để nhân vật thoát trạng thái giao tranh (combat) ➔ Tự động bấm phím **`X`** để ngồi xuống điều tức (hồi máu & chân nguyên).
+6. **Lặp lại chu kỳ:** Khi nhân vật ngồi điều tức xong, nút **`[ F ]`** hiện lại ➔ Tool tự động bấm **`F`** để bắt đầu trận mới ngay lập tức. Quá trình lặp lại vô tận cho đến khi bấm dừng.
 
 ---
 
-## 📲 Hướng Dẫn Cài Đặt Chơi Offline Trên Điện Thoại
+## 📱 PHIÊN BẢN 1: DÀNH CHO ĐIỆN THOẠI (iOS & Android)
 
-Vì game là **Progressive Web App (PWA)**, bạn có thể cài đặt như một ứng dụng native:
+Vì Cổ Tiên Lộ là web game, bạn có thể chạy tool trực tiếp trên trình duyệt điện thoại (Safari trên iPhone, Chrome trên Android, Kiwi Browser, v.v.) mà **không cần cài app ngoài, không cần root hay jailbreak!**
 
-- **Trên iPhone / iPad (Safari)**:
-  1. Mở trang web game trên Safari.
-  2. Bấm nút **Chia sẻ** (biểu tượng ô vuông có mũi tên chỉ lên).
-  3. Chọn **"Thêm vào Màn hình chính" (Add to Home Screen)**.
-  4. Mở icon game từ màn hình chính để chơi toàn màn hình ngay cả khi tắt mạng Wifi/4G!
+### Cách A: Dùng Bookmarklet (Dấu trang thông minh) - Khuyên dùng ⭐⭐⭐
+1. Mở file [cotienlo_mobile_bookmarklet.txt](file:///c:/Users/trilt/Documents/Study/CotienloTool/cotienlo_mobile_bookmarklet.txt).
+2. Copy đoạn mã bắt đầu bằng `javascript:(function(){...})();`.
+3. Trên trình duyệt điện thoại (Safari hoặc Chrome):
+   - Tạo một **Dấu trang** (Bookmark) bất kỳ và đặt tên là: `Auto Cổ Tiên Lộ`.
+   - Vào chỉnh sửa Dấu trang đó, xóa đường dẫn cũ và **dán đoạn mã vừa copy** vào ô URL.
+4. Khi vào game `https://cotienlo.com/choi`:
+   - Chỉ cần bấm vào Dấu trang (hoặc gõ chữ `Auto Cổ Tiên Lộ` lên thanh địa chỉ rồi chọn dấu trang đó).
+   - Một bảng điều khiển cảm ứng cực đẹp sẽ hiện lên ngay góc màn hình game!
+   - Có thể chạm giữ để kéo di chuyển, bấm nút `➖` để thu nhỏ thành bong bóng nổi tròn `⚔️ AUTO` để không che màn hình.
 
-- **Trên Android (Chrome)**:
-  1. Mở trang web game trên Google Chrome.
-  2. Bấm vào menu 3 chấm ở góc phải trên.
-  3. Chọn **"Cài đặt ứng dụng"** hoặc **"Thêm vào Màn hình chính"**.
+### Cách B: Dùng Tampermonkey trên điện thoại Android
+- Nếu dùng điện thoại Android, bạn có thể tải trình duyệt **Kiwi Browser** hoặc **Lemur Browser** (hỗ trợ tiện ích Chrome Extension).
+- Cài tiện ích **Tampermonkey** và nạp script từ file [cotienlo_auto.user.js](file:///c:/Users/trilt/Documents/Study/CotienloTool/cotienlo_auto.user.js).
+- Script sẽ tự động hiện mỗi khi bạn truy cập web game!
 
 ---
 
-## 🛠️ Chạy Thử Trên Máy Tính (Local Development)
+## 🖥️ PHIÊN BẢN 2: DÀNH CHO MÁY TÍNH (Windows Desktop)
 
-```bash
-# Cài đặt thư viện
-npm install
+Tool chạy độc lập trên Windows, sử dụng thuật toán nhận diện hình ảnh OpenCV (Multi-scale matching) không bị ảnh hưởng bởi zoom trình duyệt hay DPI màn hình.
 
-# Chạy server phát triển
-npm run dev
+1. **Khởi động:**
+   - Nhấp đúp chuột vào file: [Run_CotienloAuto.bat](file:///c:/Users/trilt/Documents/Study/CotienloTool/Run_CotienloAuto.bat)
+   - Hoặc mở terminal chạy: `python CotienloAuto.py`
 
-# Mở trình duyệt tại http://localhost:3000
-```
+2. **Giao diện & Cài đặt:**
+   - **Kỹ năng spam:** Tích chọn các phím kỹ năng bạn muốn spam (Phím 1, 2, 3, 4, Q, E).
+   - **Tốc độ spam:** Mặc định 150 ms / chiêu (có thể tăng giảm tùy ý).
+   - **Đếm ngược đầu trận:** Mặc định 3.5s.
+   - **Chờ hết giao tranh:** Mặc định 2.5s trước khi bấm X.
+   - **Nút "Kiểm tra nhận diện":** Bấm thử để xem tool có nhìn thấy nút F hoặc thông báo trên màn hình không.
+
+3. **Phím tắt nhanh toàn cục:**
+   - **`F9`**: Bắt đầu / Tạm dừng (Pause / Resume)
+   - **`F10`**: Dừng hẳn (Stop)
